@@ -124,16 +124,18 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	HINSTANCE hInstance;
+	hInstance = (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
+	MainWindowData* data_struct;
+	data_struct = (MainWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	switch (message)
 	{
 	case WM_CREATE:
 	{
 		try {
-			MainWindowData *data_struct;
+
 			data_struct = new MainWindowData;
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data_struct);
-			HINSTANCE hInstance;
-			hInstance = (HINSTANCE) GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
 		}
 		catch (std::bad_alloc ba) {
 			return -1;
@@ -142,8 +144,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_DESTROY:
 	{
-		MainWindowData *data_struct;
-		data_struct = (MainWindowData *) GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		MainWindowData* data_struct;
+		data_struct = (MainWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 		delete data_struct;
 		PostQuitMessage(0);
 	}
