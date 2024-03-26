@@ -124,8 +124,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	HINSTANCE hInstance;
-	hInstance = (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
 	MainWindowData* data_struct;
 	data_struct = (MainWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	switch (message)
@@ -133,9 +131,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 	{
 		try {
-
 			data_struct = new MainWindowData;
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data_struct);
+			data_struct->ncm.cbSize = sizeof(NONCLIENTMETRICS);
+			if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, 0, &data_struct->ncm, 0)) {
+				data_struct->hFont = CreateFontIndirect(&data_struct->ncm.lfMenuFont);
+			}
+			else return -1;
 		}
 		catch (std::bad_alloc ba) {
 			return -1;
@@ -146,6 +148,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		MainWindowData* data_struct;
 		data_struct = (MainWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		DeleteObject(data_struct->hFont);
 		delete data_struct;
 		PostQuitMessage(0);
 	}
@@ -165,14 +168,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
-	}
-	break;
-	case WM_PAINT:
-	{
-		PAINTSTRUCT ps;
-		HDC hdc = BeginPaint(hWnd, &ps);
-		// TODO: Добавьте сюда любой код прорисовки, использующий HDC...
-		EndPaint(hWnd, &ps);
 	}
 	break;
 	default:
