@@ -14,3 +14,5 @@
 #include <memory.h>
 #include <tchar.h>
 #include <new>
+#include <vector>
+#include <algorithm>

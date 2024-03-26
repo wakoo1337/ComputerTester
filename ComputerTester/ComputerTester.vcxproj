@@ -132,6 +132,8 @@
     <ClInclude Include="MainWindowData.hpp" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Tester.hpp" />
+    <ClInclude Include="TesterWindowData.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComputerTester.cpp" />
