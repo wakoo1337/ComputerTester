@@ -14,6 +14,7 @@ public:
 
 	HWND getWindow();
 	Tester* getTester();
+	void SetText(LPCWSTR text);
 
 	friend LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 };

@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "ComputerTester.h"
 #include "Tester.hpp"
+#include "testers.hpp"
 #include "TesterWindowData.hpp"
 #include "MainWindowData.hpp"
 
@@ -162,6 +163,12 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		SetWindowPos(data_struct->button_wnd, HWND_TOP, width - INTERVAL - BUTTON_WIDTH, 0, BUTTON_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 	};
 	break;
+	case WM_COMMAND:
+		if (LOWORD(wParam) == (WORD) data_struct->menu) {
+			data_struct->getTester()->DoTest();
+			data_struct->SetText(data_struct->getTester()->GetResult());
+		};
+		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -230,7 +237,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SendMessage(data_struct->local_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					y += EXTERNAL_MARGIN;
 					old_y = y;
-					data_struct->connection_data = new TesterWindowData(hWnd, (HMENU)IDM_INETCONNECTED, L"Проверить подключение к Интернету", new Tester);
+					data_struct->connection_data = new TesterWindowData(hWnd, (HMENU)IDM_INETCONNECTED, L"Проверить подключение к Интернету", new InetConnectedTester);
 					SendMessage(data_struct->connection_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->fwpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_FWPRESENT, L"Проверить наличие МСЭ", new Tester);
 					SendMessage(data_struct->fwpresent_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
@@ -295,7 +302,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			data_struct->returnexe_data->getTester();
 			break;
 		case IDM_INETCONNECTED:
-			data_struct->connection_data->getTester();
+			data_struct->connection_data->getTester()->DoTest();
+			data_struct->connection_data->SetText(data_struct->connection_data->getTester()->GetResult());
 			break;
 		case IDM_FWPRESENT:
 			data_struct->fwpresent_data->getTester();
@@ -346,7 +354,7 @@ TesterWindowData::TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, Tester
 	this->edit_wnd = nullptr;
 	this->static_text = text;
 	this->menu = menu;
-	this->window = CreateWindowExW(0, szTesterClass, text, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, NULL, hInst, this);
+	this->window = CreateWindowExW(0, szTesterClass, text, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, menu, hInst, this);
 };
 
 HWND TesterWindowData::getWindow() {
@@ -355,6 +363,10 @@ HWND TesterWindowData::getWindow() {
 
 Tester* TesterWindowData::getTester() {
 	return tester;
+};
+
+void TesterWindowData::SetText(LPCWSTR text) {
+	SetWindowText(edit_wnd, text);
 };
 
 TesterWindowData::~TesterWindowData() {
@@ -381,3 +393,18 @@ MainWindowData::~MainWindowData() {
 	delete disksfull_data;
 	DeleteObject(hFont);
 };
+
+Tester::Tester() : result{ L"неизвестно" } {};
+
+void Tester::DoTest() {};
+
+LPCWSTR Tester::GetResult() {
+	return result;
+}
+
+InetConnectedTester::InetConnectedTester() : Tester() {};
+
+void InetConnectedTester::DoTest() {
+	DWORD flags;
+	result = InternetGetConnectedState(&flags, 0) ? L"Интернет доступен" : L"Интернет недоступен";
+}
