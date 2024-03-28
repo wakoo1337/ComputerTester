@@ -136,8 +136,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	TesterWindowData* data_struct;
 	data_struct = (TesterWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-#define STATIC_WIDTH 100
-#define BUTTON_WIDTH 50
+#define STATIC_WIDTH 120
+#define BUTTON_WIDTH 40
 #define INTERVAL 10
 	switch (message) {
 	case WM_CREATE:
@@ -229,10 +229,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SendMessage(data_struct->swapexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->returnexe_data = new TesterWindowData(hWnd, (HMENU)IDM_RETURNEXE, L"Вернуть EXE", new Tester);
 					SendMessage(data_struct->returnexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					std::vector<TesterWindowData*> local_datas = { data_struct->avpresent_data , data_struct->avworking_data, data_struct->unknownexe_data, data_struct->swapexe_data, data_struct->returnexe_data };
+					data_struct->local_datas = { data_struct->avpresent_data , data_struct->avworking_data, data_struct->unknownexe_data, data_struct->swapexe_data, data_struct->returnexe_data };
 					int y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
 					int old_y = y;
-					PositionElements(local_datas, cs->cx, y);
+					PositionElements(data_struct->local_datas, cs->cx, y);
 					data_struct->local_box = CreateWindowEx(0, L"button", L"Локальная безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, y - old_y, hWnd, NULL, hInst, NULL);
 					SendMessage(data_struct->local_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					y += EXTERNAL_MARGIN;
@@ -245,16 +245,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SendMessage(data_struct->fwworking_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->dleicar_data = new TesterWindowData(hWnd, (HMENU)IDM_DLEICAR, L"Скачать EICAR", new Tester);
 					SendMessage(data_struct->dleicar_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					std::vector<TesterWindowData*> network_datas = { data_struct->connection_data, data_struct->fwpresent_data,data_struct->fwworking_data, data_struct->dleicar_data };
-					PositionElements(network_datas, cs->cx, y);
+					data_struct->network_datas = { data_struct->connection_data, data_struct->fwpresent_data,data_struct->fwworking_data, data_struct->dleicar_data };
+					PositionElements(data_struct->network_datas, cs->cx, y);
 					data_struct->network_box = CreateWindowEx(0, L"button", L"Сетевая безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, y - old_y, hWnd, NULL, hInst, NULL);
 					SendMessage(data_struct->network_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					y += EXTERNAL_MARGIN;
 					old_y = y;
 					data_struct->disksfull_data = new TesterWindowData(hWnd, (HMENU)IDM_DISKSFULL, L"Проверить заполнение дисков", new Tester);
 					SendMessage(data_struct->disksfull_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					std::vector<TesterWindowData*> performance_datas = { data_struct->disksfull_data };
-					PositionElements(performance_datas, cs->cx, y);
+					data_struct->performance_datas = { data_struct->disksfull_data };
+					PositionElements(data_struct->performance_datas, cs->cx, y);
 					data_struct->performance_box = CreateWindowEx(0, L"button", L"Производительность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, y - old_y, hWnd, NULL, hInst, NULL);
 					SendMessage(data_struct->performance_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					y += EXTERNAL_MARGIN;
