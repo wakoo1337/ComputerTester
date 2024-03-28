@@ -147,7 +147,7 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data_struct);
 		data_struct->static_wnd = CreateWindowEx(0, L"static", data_struct->static_text, WS_CHILD | WS_VISIBLE, 0, 0, STATIC_WIDTH, cs->cy, hWnd, nullptr, hInst, nullptr);
 		data_struct->edit_wnd = CreateWindowEx(0, L"edit", L"", WS_CHILD | WS_VISIBLE, STATIC_WIDTH + INTERVAL, 0, cs->cx - 2 * INTERVAL - STATIC_WIDTH - BUTTON_WIDTH, cs->cy, hWnd, nullptr, hInst, nullptr);
-		data_struct->button_wnd = CreateWindowEx(0, L"button", L"Тест", WS_CHILD | WS_VISIBLE, cs->cx - INTERVAL - BUTTON_WIDTH, 0, BUTTON_WIDTH, cs->cy, hWnd, data_struct->menu, hInst, nullptr);
+		data_struct->button_wnd = CreateWindowEx(0, L"button", L"Тест", WS_CHILD | WS_VISIBLE, cs->cx - BUTTON_WIDTH, 0, BUTTON_WIDTH, cs->cy, hWnd, data_struct->menu, hInst, nullptr);
 		break;
 	case WM_SETFONT:
 		SendMessage(data_struct->static_wnd, WM_SETFONT, wParam, lParam);
@@ -160,7 +160,7 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		const int height = HIWORD(lParam);
 		SetWindowPos(data_struct->static_wnd, HWND_TOP, 0, 0, STATIC_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 		SetWindowPos(data_struct->edit_wnd, HWND_TOP, STATIC_WIDTH + INTERVAL, 0, width - 2 * INTERVAL - STATIC_WIDTH - BUTTON_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		SetWindowPos(data_struct->button_wnd, HWND_TOP, width - INTERVAL - BUTTON_WIDTH, 0, BUTTON_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		SetWindowPos(data_struct->button_wnd, HWND_TOP, width - BUTTON_WIDTH, 0, BUTTON_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 	};
 	break;
 	case WM_COMMAND:
@@ -287,35 +287,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case IDM_AVPRESENT:
-			data_struct->avpresent_data->getTester();
+			Tester* t;
+			t = data_struct->avpresent_data->getTester();
+			t->DoTest();
+			data_struct->avpresent_data->SetText(t->GetResult());
 			break;
 		case IDM_AVWORKS:
-			data_struct->avworking_data->getTester();
+			t = data_struct->avworking_data->getTester();
+			t->DoTest();
+			data_struct->avworking_data->SetText(t->GetResult());
 			break;
 		case IDM_UNKNOWNEXE:
-			data_struct->unknownexe_data->getTester();
+			t = data_struct->unknownexe_data->getTester();
+			t->DoTest();
+			data_struct->unknownexe_data->SetText(t->GetResult());
 			break;
 		case IDM_SWAPEXE:
-			data_struct->swapexe_data->getTester();
+			t = data_struct->swapexe_data->getTester();
+			t->DoTest();
+			data_struct->swapexe_data->SetText(t->GetResult());
 			break;
 		case IDM_RETURNEXE:
-			data_struct->returnexe_data->getTester();
+			t = data_struct->returnexe_data->getTester();
+			t->DoTest();
+			data_struct->returnexe_data->SetText(t->GetResult());
 			break;
 		case IDM_INETCONNECTED:
-			data_struct->connection_data->getTester()->DoTest();
-			data_struct->connection_data->SetText(data_struct->connection_data->getTester()->GetResult());
+			t = data_struct->connection_data->getTester();
+			t->DoTest();
+			data_struct->connection_data->SetText(t->GetResult());
 			break;
 		case IDM_FWPRESENT:
-			data_struct->fwpresent_data->getTester();
+			t = data_struct->fwpresent_data->getTester();
+			t->DoTest();
+			data_struct->fwpresent_data->SetText(t->GetResult());
 			break;
 		case IDM_FWWORKS:
-			data_struct->fwworking_data->getTester();
+			t = data_struct->fwworking_data->getTester();
+			t->DoTest();
+			data_struct->fwworking_data->SetText(t->GetResult());
 			break;
 		case IDM_DLEICAR:
-			data_struct->dleicar_data->getTester();
+			t = data_struct->dleicar_data->getTester();
+			t->DoTest();
+			data_struct->dleicar_data->SetText(t->GetResult());
 			break;
 		case IDM_DISKSFULL:
-			data_struct->disksfull_data->getTester();
+			t = data_struct->disksfull_data->getTester();
+			t->DoTest();
+			data_struct->disksfull_data->SetText(t->GetResult());
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
