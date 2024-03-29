@@ -1,4 +1,4 @@
-class TesterWindowData {
+class TesterWindowData final {
 	HWND static_wnd, edit_wnd, button_wnd;
 	HWND window;
 	LPCWSTR static_text;
@@ -15,6 +15,7 @@ public:
 	HWND getWindow();
 	Tester* getTester();
 	void SetText(LPCWSTR text);
+	LPCWSTR GetStaticText();
 
 	friend LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 };

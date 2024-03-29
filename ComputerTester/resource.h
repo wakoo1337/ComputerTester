@@ -15,16 +15,6 @@
 #define IDM_BUTTON_CHECKINET            110
 #define IDM_BUTTON_CHECKSPEED           111
 #define IDR_MAINFRAME                   128
-#define ID_32771                        32771
-#define ID_32772                        32772
-#define ID_32773                        32773
-#define ID_32774                        32774
-#define ID_32775                        32775
-#define ID_32776                        32776
-#define ID_32777                        32777
-#define ID_32778                        32778
-#define ID_32779                        32779
-#define ID_32780                        32780
 #define IDM_AVPRESENT                   32781
 #define IDM_AVWORKS                     32782
 #define IDM_UNKNOWNEXE                  32783
@@ -35,6 +25,7 @@
 #define IDM_FWWORKS                     32788
 #define IDM_DLEICAR                     32789
 #define IDM_DISKSFULL                   32790
+#define IDM_SAVETXT                     32794
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -43,7 +34,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        131
-#define _APS_NEXT_COMMAND_VALUE         32791
+#define _APS_NEXT_COMMAND_VALUE         32796
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           112
 #endif

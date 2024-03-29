@@ -59,6 +59,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
+	CoUninitialize();
+
 	return (int)msg.wParam;
 }
 
@@ -119,6 +121,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	hInst = hInstance; // Сохранить маркер экземпляра в глобальной переменной
 
+	if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) return FALSE;
+
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, 600, 700, nullptr, nullptr, hInstance, nullptr);
 
@@ -164,7 +168,7 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	};
 	break;
 	case WM_COMMAND:
-		if (LOWORD(wParam) == (WORD) data_struct->menu) {
+		if (LOWORD(wParam) == (WORD)data_struct->menu) {
 			data_struct->getTester()->DoTest();
 			data_struct->SetText(data_struct->getTester()->GetResult());
 		};
@@ -337,6 +341,54 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			t->DoTest();
 			data_struct->disksfull_data->SetText(t->GetResult());
 			break;
+		case IDM_SAVETXT:
+		{
+			const COMDLG_FILTERSPEC txt_filter{ L"Текстовые файлы (*.txt)", L"*.txt" };
+			IFileSaveDialog* save_dialog;
+			IShellItem* shell_item;
+			LPWSTR path;
+			HRESULT hResult;
+			hResult = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog, (LPVOID*)&save_dialog);
+			if (SUCCEEDED(hResult)) {
+				if (SUCCEEDED(hResult = save_dialog->SetFileTypes(1, &txt_filter)) &&
+					SUCCEEDED(hResult = save_dialog->SetTitle(L"Выберите путь для сохранения файла")) &&
+					SUCCEEDED(hResult = save_dialog->SetOptions(FOS_NOCHANGEDIR)) &&
+					SUCCEEDED(hResult = save_dialog->Show(hWnd)) &&
+					SUCCEEDED(hResult = save_dialog->GetResult(&shell_item))) {
+					if (SUCCEEDED(hResult = shell_item->GetDisplayName(SIGDN_FILESYSPATH, &path))) {
+						{
+							try {
+								std::wofstream out_stream(path, std::ios::out | std::ios::trunc);
+								out_stream.imbue(std::locale("en_US.UTF-8"));
+								//out_stream.imbue(std::locale::locale(std::locale::classic(), new std::codecvt_utf8<wchar_t>));
+								//out_stream.imbue(std::locale::locale(std::locale::classic(), new std::codecvt<wchar_t, char8_t, std::mbstate_t>));
+								if (out_stream.good()) {
+									std::vector<LPCWSTR> names = { L"Локальная безопасность", L"Сетевая безопасность", L"Производительность" };
+									std::vector<std::vector<TesterWindowData*>> datas = { data_struct->local_datas, data_struct->network_datas, data_struct->performance_datas };
+									int c = 0;
+									for (int j = 0; j < 3; j++) {
+										out_stream << names.at(j) << std::endl;
+										for (int i = 0; i < datas.at(j).size(); i++) {
+											c++;
+											TesterWindowData* twd = datas.at(j).at(i);
+											out_stream << c << L". " << twd->GetStaticText() << L" : " << twd->getTester()->GetResult() << std::endl;
+										}
+									};
+								};
+								out_stream.close();
+							}
+							catch (std::wofstream::failure fail) {
+								const char* what = fail.what();
+							}
+						}
+						CoTaskMemFree(path);
+					}
+					shell_item->Release();
+				};
+				save_dialog->Release();
+			};
+		}
+		break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -387,6 +439,10 @@ Tester* TesterWindowData::getTester() {
 
 void TesterWindowData::SetText(LPCWSTR text) {
 	SetWindowText(edit_wnd, text);
+};
+
+LPCWSTR TesterWindowData::GetStaticText() {
+	return static_text;
 };
 
 TesterWindowData::~TesterWindowData() {

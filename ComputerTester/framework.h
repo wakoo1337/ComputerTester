@@ -8,6 +8,7 @@
 // Файлы заголовков Windows
 #include <windows.h>
 #include <wininet.h>
+#include <Shobjidl.h>
 // Файлы заголовков среды выполнения C
 #include <stdlib.h>
 #include <malloc.h>
@@ -16,3 +17,6 @@
 #include <new>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <codecvt>
