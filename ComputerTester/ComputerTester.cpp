@@ -360,8 +360,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							try {
 								std::wofstream out_stream(path, std::ios::out | std::ios::trunc);
 								out_stream.imbue(std::locale("en_US.UTF-8"));
-								//out_stream.imbue(std::locale::locale(std::locale::classic(), new std::codecvt_utf8<wchar_t>));
-								//out_stream.imbue(std::locale::locale(std::locale::classic(), new std::codecvt<wchar_t, char8_t, std::mbstate_t>));
+								std::chrono::system_clock::time_point sysclk = std::chrono::system_clock::now();
+								out_stream << L"Отчёт за " << sysclk << std::endl;
 								if (out_stream.good()) {
 									std::vector<LPCWSTR> names = { L"Локальная безопасность", L"Сетевая безопасность", L"Производительность" };
 									std::vector<std::vector<TesterWindowData*>> datas = { data_struct->local_datas, data_struct->network_datas, data_struct->performance_datas };
