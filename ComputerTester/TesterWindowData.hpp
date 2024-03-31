@@ -4,6 +4,7 @@ class TesterWindowData final {
 	LPCWSTR static_text;
 	HMENU menu;
 	Tester* tester;
+	HANDLE thread;
 
 	TesterWindowData();
 
@@ -13,9 +14,11 @@ public:
 	TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, Tester* tester);
 
 	HWND getWindow();
-	Tester* getTester();
-	void SetText(LPCWSTR text);
+	void PerformTest();
+	void FinishTest();
+	LPCWSTR GetTesterResult();
 	LPCWSTR GetStaticText();
 
 	friend LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	friend DWORD WINAPI TesterThreadWrapper(LPVOID lpParameter);
 };

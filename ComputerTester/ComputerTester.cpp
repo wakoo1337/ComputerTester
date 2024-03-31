@@ -168,10 +168,7 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	};
 	break;
 	case WM_COMMAND:
-		if (LOWORD(wParam) == (WORD)data_struct->menu) {
-			data_struct->getTester()->DoTest();
-			data_struct->SetText(data_struct->getTester()->GetResult());
-		};
+		if (LOWORD(wParam) == (WORD)data_struct->menu) data_struct->PerformTest();
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -195,6 +192,8 @@ void PositionElements(std::vector<TesterWindowData*>& datas, int width, int& y) 
 		}
 	); y += INTERNAL_MARGIN;
 };
+
+#define WM_THREADWAIT WM_USER+0 // В lParam - указатель на TesterWindowData
 
 //
 //  ФУНКЦИЯ: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -291,55 +290,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case IDM_AVPRESENT:
-			Tester* t;
-			t = data_struct->avpresent_data->getTester();
-			t->DoTest();
-			data_struct->avpresent_data->SetText(t->GetResult());
+			data_struct->avpresent_data->PerformTest();
 			break;
 		case IDM_AVWORKS:
-			t = data_struct->avworking_data->getTester();
-			t->DoTest();
-			data_struct->avworking_data->SetText(t->GetResult());
+			data_struct->avworking_data->PerformTest();
 			break;
 		case IDM_UNKNOWNEXE:
-			t = data_struct->unknownexe_data->getTester();
-			t->DoTest();
-			data_struct->unknownexe_data->SetText(t->GetResult());
+			data_struct->unknownexe_data->PerformTest();
 			break;
 		case IDM_SWAPEXE:
-			t = data_struct->swapexe_data->getTester();
-			t->DoTest();
-			data_struct->swapexe_data->SetText(t->GetResult());
+			data_struct->swapexe_data->PerformTest();
 			break;
 		case IDM_RETURNEXE:
-			t = data_struct->returnexe_data->getTester();
-			t->DoTest();
-			data_struct->returnexe_data->SetText(t->GetResult());
+			data_struct->returnexe_data->PerformTest();
 			break;
 		case IDM_INETCONNECTED:
-			t = data_struct->connection_data->getTester();
-			t->DoTest();
-			data_struct->connection_data->SetText(t->GetResult());
+			data_struct->connection_data->PerformTest();
 			break;
 		case IDM_FWPRESENT:
-			t = data_struct->fwpresent_data->getTester();
-			t->DoTest();
-			data_struct->fwpresent_data->SetText(t->GetResult());
+			data_struct->fwpresent_data->PerformTest();
 			break;
 		case IDM_FWWORKS:
-			t = data_struct->fwworking_data->getTester();
-			t->DoTest();
-			data_struct->fwworking_data->SetText(t->GetResult());
+			data_struct->fwworking_data->PerformTest();
 			break;
 		case IDM_DLEICAR:
-			t = data_struct->dleicar_data->getTester();
-			t->DoTest();
-			data_struct->dleicar_data->SetText(t->GetResult());
+			data_struct->dleicar_data->PerformTest();
 			break;
 		case IDM_DISKSFULL:
-			t = data_struct->disksfull_data->getTester();
-			t->DoTest();
-			data_struct->disksfull_data->SetText(t->GetResult());
+			data_struct->disksfull_data->PerformTest();
 			break;
 		case IDM_SAVETXT:
 		{
@@ -371,7 +349,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 										for (int i = 0; i < datas.at(j).size(); i++) {
 											c++;
 											TesterWindowData* twd = datas.at(j).at(i);
-											out_stream << c << L". " << twd->GetStaticText() << L" : " << twd->getTester()->GetResult() << std::endl;
+											out_stream << c << L". " << twd->GetStaticText() << L" : " << twd->GetTesterResult() << std::endl;
 										}
 									};
 								};
@@ -394,6 +372,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
+	case WM_THREADWAIT:
+	{
+		TesterWindowData* twd;
+		twd = (TesterWindowData*)lParam;
+		twd->FinishTest();
+	}
+		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -420,12 +405,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-TesterWindowData::TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, Tester* tester) : tester{ tester } {
-	this->button_wnd = nullptr;
-	this->static_wnd = nullptr;
-	this->edit_wnd = nullptr;
-	this->static_text = text;
-	this->menu = menu;
+TesterWindowData::TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, Tester* tester) : tester{ tester }, thread{ 0 }, button_wnd{ nullptr }, static_wnd{ nullptr }, edit_wnd{ nullptr }, static_text{ text }, menu{ menu } {
 	this->window = CreateWindowExW(0, szTesterClass, text, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, menu, hInst, this);
 };
 
@@ -433,12 +413,28 @@ HWND TesterWindowData::getWindow() {
 	return window;
 };
 
-Tester* TesterWindowData::getTester() {
-	return tester;
+DWORD WINAPI TesterThreadWrapper(LPVOID lpParameter) {
+	TesterWindowData* twd;
+	twd = (TesterWindowData*)lpParameter;
+	twd->tester->DoTest();
+	SetWindowText(twd->edit_wnd, twd->GetTesterResult());
+	PostMessage(GetParent(twd->window), WM_THREADWAIT, 0, (LPARAM) twd);
+	return 0;
 };
 
-void TesterWindowData::SetText(LPCWSTR text) {
-	SetWindowText(edit_wnd, text);
+void TesterWindowData::PerformTest() {
+	if (thread == 0) thread = CreateThread(NULL, 0, &TesterThreadWrapper, this, 0, NULL);
+	else MessageBoxExW(GetParent(window), L"Тест уже идёт", L"Невозможно запустить тест", MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
+};
+
+void TesterWindowData::FinishTest() {
+	WaitForSingleObject(thread, INFINITE);
+	CloseHandle(thread);
+	thread = 0;
+};
+
+LPCWSTR TesterWindowData::GetTesterResult() {
+	return tester->GetResult();
 };
 
 LPCWSTR TesterWindowData::GetStaticText() {
