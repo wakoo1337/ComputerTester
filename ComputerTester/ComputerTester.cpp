@@ -7,6 +7,10 @@
 #include "testers.hpp"
 #include "TesterWindowData.hpp"
 #include "MainWindowData.hpp"
+#include <filesystem>
+#include <windows.h>
+#include <Wininet.h>
+#include <codecvt>
 
 #define MAX_LOADSTRING 100
 
@@ -222,7 +226,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					CREATESTRUCT* cs;
 					cs = (CREATESTRUCT*)lParam;
 					SendMessage(data_struct->local_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->avpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_AVPRESENT, L"Проверить наличие антивируса", new Tester);
+					data_struct->avpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_AVPRESENT, L"Проверить наличие антивируса", new CheckInstallAntivirus);
 					SendMessage(data_struct->avpresent_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->avworking_data = new TesterWindowData(hWnd, (HMENU)IDM_AVWORKS, L"Проверить работоспособность антивируса", new Tester);
 					SendMessage(data_struct->avworking_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
@@ -242,9 +246,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					old_y = y;
 					data_struct->connection_data = new TesterWindowData(hWnd, (HMENU)IDM_INETCONNECTED, L"Проверить подключение к Интернету", new InetConnectedTester);
 					SendMessage(data_struct->connection_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->fwpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_FWPRESENT, L"Проверить наличие МСЭ", new Tester);
+					data_struct->fwpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_FWPRESENT, L"Проверить наличие МСЭ", new FireWallTester);
 					SendMessage(data_struct->fwpresent_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->fwworking_data = new TesterWindowData(hWnd, (HMENU)IDM_FWWORKS, L"Проверить работоспособность МСЭ", new Tester);
+					data_struct->fwworking_data = new TesterWindowData(hWnd, (HMENU)IDM_FWWORKS, L"Проверить работоспособность МСЭ", new FireWallWorkTester);
 					SendMessage(data_struct->fwworking_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->dleicar_data = new TesterWindowData(hWnd, (HMENU)IDM_DLEICAR, L"Скачать EICAR", new Tester);
 					SendMessage(data_struct->dleicar_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
@@ -480,3 +484,86 @@ void InetConnectedTester::DoTest() {
 	DWORD flags;
 	result = InternetGetConnectedState(&flags, 0) ? L"Интернет доступен" : L"Интернет недоступен";
 }
+
+FireWallTester::FireWallTester() : Tester() {};
+
+void FireWallTester::DoTest() {
+	std::filesystem::path filePath("C:\\Program Files\\COMODO\\COMODO Internet Security\\cis.exe");
+	if (std::filesystem::exists(filePath)) {
+		result = L"МЭ установлен";
+	}
+	else {
+		result = L"МЭ не установлен";
+	}
+}
+
+FireWallWorkTester::FireWallWorkTester() : Tester() {};
+void FireWallWorkTester::DoTest() {
+	HINTERNET hInternet = InternetOpen(L"FireWallWorkTester", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+	if (!hInternet) {
+		result = L"Ошибка при открытии сессии интернета";
+		return;
+	}
+
+	HINTERNET hUrl = InternetOpenUrl(hInternet, L"https://ya.ru", NULL, 0, INTERNET_FLAG_RELOAD, 0);
+	if (!hUrl) {
+		InternetCloseHandle(hInternet);
+		result = L"МЭ функционирует правильно";
+		return;
+	}
+
+	InternetCloseHandle(hUrl);
+	InternetCloseHandle(hInternet);
+
+	result = L"МЭ функционирует не правильно";
+}
+CheckInstallAntivirus::CheckInstallAntivirus():Tester() {};
+void CheckInstallAntivirus::DoTest() {
+	result = L"Антивирус не установлен!";
+
+	std::vector<std::wstring> antiv = {
+		L"Dr.Web Security Space",
+		L"Kaspersky Internet Security",
+		L"Kaspersky Total Security",
+		L"Avast Internet Security",
+		L"Avast! Pro Antivirus"
+	};
+
+	HKEY hKey;
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", 0, KEY_READ | KEY_WOW64_64KEY, &hKey) == ERROR_SUCCESS) {
+		DWORD count_subkey;
+		if (RegQueryInfoKey(hKey, NULL, NULL, NULL, &count_subkey, NULL, NULL, NULL, NULL, NULL, NULL, NULL) == ERROR_SUCCESS) {
+			std::vector<std::wstring> software_list;
+			for (DWORD i = 0; i < count_subkey; ++i) {
+				std::wstring softwareName;
+				try {
+					WCHAR asubkey_name[255];
+					DWORD size = sizeof(asubkey_name);
+					if (RegEnumKeyEx(hKey, i, asubkey_name, &size, NULL, NULL, NULL, NULL) == ERROR_SUCCESS) {
+						HKEY hSubKey;
+						if (RegOpenKeyEx(hKey, asubkey_name, 0, KEY_READ | KEY_WOW64_64KEY, &hSubKey) == ERROR_SUCCESS) {
+							WCHAR displayName[1024];
+							DWORD dataSize = sizeof(displayName);
+							if (RegQueryValueEx(hSubKey, L"DisplayName", NULL, NULL, (LPBYTE)displayName, &dataSize) == ERROR_SUCCESS) {
+								softwareName = displayName;
+								software_list.push_back(softwareName);
+								if (std::find(antiv.begin(), antiv.end(), softwareName) != antiv.end()) {
+									result = L"Антивирус установлен!";
+									break;
+								}
+							}
+							RegCloseKey(hSubKey);
+						}
+					}
+				}
+				catch (...) {
+					continue;
+				}
+			}
+		}
+		RegCloseKey(hKey);
+	}
+}
+
+
+
