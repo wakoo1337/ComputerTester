@@ -7,10 +7,6 @@
 #include "testers.hpp"
 #include "TesterWindowData.hpp"
 #include "MainWindowData.hpp"
-#include <filesystem>
-#include <windows.h>
-#include <Wininet.h>
-#include <codecvt>
 
 #define MAX_LOADSTRING 100
 
