@@ -372,13 +372,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
+	case WM_SIZE:
+	{
+		const int width = LOWORD(lParam);
+		const int height = HIWORD(lParam);
+		int y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
+		int old_y = y;
+		PositionElements(data_struct->local_datas, width, y);
+		SetWindowPos(data_struct->local_box, HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		old_y = y;
+		PositionElements(data_struct->network_datas, width, y);
+		SetWindowPos(data_struct->network_box, HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		old_y = y;
+		PositionElements(data_struct->performance_datas, width, y);
+		SetWindowPos(data_struct->performance_box, HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		old_y = y;
+	}
+	break;
 	case WM_THREADWAIT:
 	{
 		TesterWindowData* twd;
 		twd = (TesterWindowData*)lParam;
 		twd->FinishTest();
 	}
-		break;
+	break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -418,7 +435,7 @@ DWORD WINAPI TesterThreadWrapper(LPVOID lpParameter) {
 	twd = (TesterWindowData*)lpParameter;
 	twd->tester->DoTest();
 	SetWindowText(twd->edit_wnd, twd->GetTesterResult());
-	PostMessage(GetParent(twd->window), WM_THREADWAIT, 0, (LPARAM) twd);
+	PostMessage(GetParent(twd->window), WM_THREADWAIT, 0, (LPARAM)twd);
 	return 0;
 };
 
@@ -513,7 +530,7 @@ void FireWallWorkTester::DoTest() {
 
 	result = L"МЭ функционирует не правильно";
 }
-CheckInstallAntivirus::CheckInstallAntivirus():Tester() {};
+CheckInstallAntivirus::CheckInstallAntivirus() :Tester() {};
 void CheckInstallAntivirus::DoTest() {
 	result = L"Антивирус не установлен!";
 
