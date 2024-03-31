@@ -123,7 +123,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) return FALSE;
 
-	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW | WS_VSCROLL,
 		CW_USEDEFAULT, CW_USEDEFAULT, 600, 700, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
@@ -169,6 +169,7 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	break;
 	case WM_COMMAND:
 		if (LOWORD(wParam) == (WORD)data_struct->menu) data_struct->PerformTest();
+		else return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -262,6 +263,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SendMessage(data_struct->performance_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					y += EXTERNAL_MARGIN;
 					old_y = y;
+
+					SCROLLINFO si;
+					si.cbSize = sizeof(SCROLLINFO);
+					si.fMask = SIF_ALL;
+					si.nMin = 0;
+					si.nMax = y;
+					si.nPage = cs->cy;
+					si.nPos = si.nTrackPos = 0;
+					SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
 				}
 			}
 			else return -1;
@@ -387,6 +397,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PositionElements(data_struct->performance_datas, width, y);
 		SetWindowPos(data_struct->performance_box, HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 		old_y = y;
+		SCROLLINFO si;
+		si.cbSize = sizeof(SCROLLINFO);
+		si.fMask = SIF_PAGE | SIF_POS;
+		si.nPage = height;
+		si.nPos = 0;
+		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+	}
+	break;
+	case WM_VSCROLL:
+	{
+		SCROLLINFO si;
+		si.cbSize = sizeof(SCROLLINFO);
+		si.fMask = SIF_POS | SIF_RANGE;
+		GetScrollInfo(hWnd, SB_VERT, &si);
+		int old_pos = si.nPos;
+		switch (LOWORD(wParam)) {
+		case SB_TOP:
+			si.nPos = si.nMin;
+			break;
+		case SB_BOTTOM:
+			si.nPos = si.nMax;
+			break;
+		case SB_THUMBPOSITION:
+		case SB_THUMBTRACK:
+			si.nPos = HIWORD(wParam);
+			break;
+		};
+		si.fMask = SIF_POS;
+		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+		GetScrollInfo(hWnd, SB_VERT, &si);
+		ScrollWindowEx(hWnd, 0, old_pos - si.nPos, NULL, NULL, NULL, NULL, SW_SCROLLCHILDREN | SW_INVALIDATE);
+		UpdateWindow(hWnd);
 	}
 	break;
 	case WM_THREADWAIT:
