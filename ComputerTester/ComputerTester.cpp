@@ -427,7 +427,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		si.fMask = SIF_POS;
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
 		GetScrollInfo(hWnd, SB_VERT, &si);
-		ScrollWindowEx(hWnd, 0, old_pos - si.nPos, NULL, NULL, NULL, NULL, SW_SCROLLCHILDREN | SW_INVALIDATE);
+		ScrollWindowEx(hWnd, 0, old_pos - si.nPos, NULL, NULL, NULL, NULL, SW_SCROLLCHILDREN | SW_ERASE | SW_INVALIDATE);
 		UpdateWindow(hWnd);
 	}
 	break;
