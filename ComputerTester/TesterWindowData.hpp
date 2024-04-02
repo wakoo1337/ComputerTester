@@ -5,17 +5,19 @@ class TesterWindowData final {
 	HMENU menu;
 	Tester* tester;
 	HANDLE thread;
+	int height;
 
 	TesterWindowData();
 
 public:
 	~TesterWindowData();
 
-	TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, Tester* tester);
+	TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, int height, Tester* tester);
 
 	HWND getWindow();
 	void PerformTest();
 	void FinishTest();
+	int GetHeight();
 	LPCWSTR GetTesterResult();
 	LPCWSTR GetStaticText();
 

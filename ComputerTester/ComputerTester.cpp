@@ -125,7 +125,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) return FALSE;
 
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW | WS_VSCROLL,
-		CW_USEDEFAULT, CW_USEDEFAULT, 600, 700, nullptr, nullptr, hInstance, nullptr);
+		CW_USEDEFAULT, CW_USEDEFAULT, 600, 720, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
 	{
@@ -188,9 +188,9 @@ void PositionElements(std::vector<TesterWindowData*>& datas, int width, int& y) 
 		EXTERNAL_MARGIN + INTERNAL_MARGIN,
 		y,
 		width - 2 * (EXTERNAL_MARGIN + INTERNAL_MARGIN),
-		TESTER_HEIGHT,
+		twd->GetHeight(),
 		SWP_NOACTIVATE | SWP_SHOWWINDOW);
-	y += INTERNAL_MARGIN + TESTER_HEIGHT;
+	y += INTERNAL_MARGIN + twd->GetHeight();
 		}
 	); y += INTERNAL_MARGIN;
 };
@@ -224,52 +224,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					CREATESTRUCT* cs;
 					cs = (CREATESTRUCT*)lParam;
 					SendMessage(data_struct->local_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->avpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_AVPRESENT, L"Проверить наличие антивируса", new CheckInstallAntivirus);
+					data_struct->avpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_AVPRESENT, L"Проверить наличие антивируса", TESTER_HEIGHT, new CheckInstallAntivirus);
 					SendMessage(data_struct->avpresent_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->avworking_data = new TesterWindowData(hWnd, (HMENU)IDM_AVWORKS, L"Проверить работоспособность антивируса", new Tester);
+					data_struct->avworking_data = new TesterWindowData(hWnd, (HMENU)IDM_AVWORKS, L"Проверить работоспособность антивируса", TESTER_HEIGHT, new Tester);
 					SendMessage(data_struct->avworking_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->unknownexe_data = new TesterWindowData(hWnd, (HMENU)IDM_UNKNOWNEXE, L"Неизвестный EXE", new Tester);
+					data_struct->unknownexe_data = new TesterWindowData(hWnd, (HMENU)IDM_UNKNOWNEXE, L"Неизвестный EXE", TESTER_HEIGHT, new Tester);
 					SendMessage(data_struct->unknownexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->swapexe_data = new TesterWindowData(hWnd, (HMENU)IDM_SWAPEXE, L"Подмена EXE", new Tester);
+					data_struct->swapexe_data = new TesterWindowData(hWnd, (HMENU)IDM_SWAPEXE, L"Подмена EXE", TESTER_HEIGHT, new Tester);
 					SendMessage(data_struct->swapexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->returnexe_data = new TesterWindowData(hWnd, (HMENU)IDM_RETURNEXE, L"Вернуть EXE", new Tester);
+					data_struct->returnexe_data = new TesterWindowData(hWnd, (HMENU)IDM_RETURNEXE, L"Вернуть EXE", TESTER_HEIGHT, new Tester);
 					SendMessage(data_struct->returnexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->local_datas = { data_struct->avpresent_data , data_struct->avworking_data, data_struct->unknownexe_data, data_struct->swapexe_data, data_struct->returnexe_data };
-					int y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
-					int old_y = y;
-					PositionElements(data_struct->local_datas, cs->cx, y);
-					data_struct->local_box = CreateWindowEx(0, L"button", L"Локальная безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, y - old_y, hWnd, NULL, hInst, NULL);
+					data_struct->y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
+					int old_y = data_struct->y;
+					PositionElements(data_struct->local_datas, cs->cx, data_struct->y);
+					data_struct->local_box = CreateWindowEx(0, L"button", L"Локальная безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
 					SendMessage(data_struct->local_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					y += EXTERNAL_MARGIN;
-					old_y = y;
-					data_struct->connection_data = new TesterWindowData(hWnd, (HMENU)IDM_INETCONNECTED, L"Проверить подключение к Интернету", new InetConnectedTester);
+					data_struct->y += EXTERNAL_MARGIN;
+					old_y = data_struct->y;
+					data_struct->connection_data = new TesterWindowData(hWnd, (HMENU)IDM_INETCONNECTED, L"Проверить подключение к Интернету", TESTER_HEIGHT, new InetConnectedTester);
 					SendMessage(data_struct->connection_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->fwpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_FWPRESENT, L"Проверить наличие МСЭ", new FireWallTester);
+					data_struct->fwpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_FWPRESENT, L"Проверить наличие МСЭ", TESTER_HEIGHT, new FireWallTester);
 					SendMessage(data_struct->fwpresent_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->fwworking_data = new TesterWindowData(hWnd, (HMENU)IDM_FWWORKS, L"Проверить работоспособность МСЭ", new FireWallWorkTester);
+					data_struct->fwworking_data = new TesterWindowData(hWnd, (HMENU)IDM_FWWORKS, L"Проверить работоспособность МСЭ", TESTER_HEIGHT, new FireWallWorkTester);
 					SendMessage(data_struct->fwworking_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->dleicar_data = new TesterWindowData(hWnd, (HMENU)IDM_DLEICAR, L"Скачать EICAR", new Tester);
+					data_struct->dleicar_data = new TesterWindowData(hWnd, (HMENU)IDM_DLEICAR, L"Скачать EICAR", TESTER_HEIGHT, new Tester);
 					SendMessage(data_struct->dleicar_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->network_datas = { data_struct->connection_data, data_struct->fwpresent_data,data_struct->fwworking_data, data_struct->dleicar_data };
-					PositionElements(data_struct->network_datas, cs->cx, y);
-					data_struct->network_box = CreateWindowEx(0, L"button", L"Сетевая безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, y - old_y, hWnd, NULL, hInst, NULL);
+					PositionElements(data_struct->network_datas, cs->cx, data_struct->y);
+					data_struct->network_box = CreateWindowEx(0, L"button", L"Сетевая безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
 					SendMessage(data_struct->network_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					y += EXTERNAL_MARGIN;
-					old_y = y;
-					data_struct->disksfull_data = new TesterWindowData(hWnd, (HMENU)IDM_DISKSFULL, L"Проверить заполнение дисков", new DiskSpaceTester);
+					data_struct->y += EXTERNAL_MARGIN;
+					old_y = data_struct->y;
+					data_struct->disksfull_data = new TesterWindowData(hWnd, (HMENU)IDM_DISKSFULL, L"Проверить заполнение дисков", 3 * TESTER_HEIGHT, new DiskSpaceTester);
 					SendMessage(data_struct->disksfull_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->performance_datas = { data_struct->disksfull_data };
-					PositionElements(data_struct->performance_datas, cs->cx, y);
-					data_struct->performance_box = CreateWindowEx(0, L"button", L"Производительность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, y - old_y, hWnd, NULL, hInst, NULL);
+					PositionElements(data_struct->performance_datas, cs->cx, data_struct->y);
+					data_struct->performance_box = CreateWindowEx(0, L"button", L"Производительность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
 					SendMessage(data_struct->performance_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					y += EXTERNAL_MARGIN;
-					old_y = y;
-
+					data_struct->y += EXTERNAL_MARGIN;
+					old_y = data_struct->y;
+					data_struct->y -= 3 * INTERNAL_MARGIN;
 					SCROLLINFO si;
 					si.cbSize = sizeof(SCROLLINFO);
 					si.fMask = SIF_ALL;
 					si.nMin = 0;
-					si.nMax = y;
+					si.nMax = data_struct->y;
 					si.nPage = cs->cy;
 					si.nPos = si.nTrackPos = 0;
 					SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
@@ -400,9 +400,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		old_y = y;
 		SCROLLINFO si;
 		si.cbSize = sizeof(SCROLLINFO);
-		si.fMask = SIF_PAGE | SIF_POS;
+		si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE;
+		GetScrollInfo(hWnd, SB_VERT, &si);
+		si.nMax = data_struct->y;
 		si.nPage = height;
-		si.nPos = 0;
+		si.nPos = max(0, min(si.nMax, si.nPos));
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
 	}
 	break;
@@ -465,7 +467,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-TesterWindowData::TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, Tester* tester) : tester{ tester }, thread{ 0 }, button_wnd{ nullptr }, static_wnd{ nullptr }, edit_wnd{ nullptr }, static_text{ text }, menu{ menu } {
+TesterWindowData::TesterWindowData(HWND parent, HMENU menu, LPCWSTR text, int height, Tester* tester) : tester{ tester }, thread{ 0 }, button_wnd{ nullptr }, static_wnd{ nullptr }, edit_wnd{ nullptr }, static_text{ text }, menu{ menu }, height{ height } {
 	this->window = CreateWindowExW(0, szTesterClass, text, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, parent, menu, hInst, this);
 };
 
@@ -491,6 +493,10 @@ void TesterWindowData::FinishTest() {
 	WaitForSingleObject(thread, INFINITE);
 	CloseHandle(thread);
 	thread = 0;
+};
+
+int TesterWindowData::GetHeight() {
+	return height;
 };
 
 LPCWSTR TesterWindowData::GetTesterResult() {
