@@ -14,6 +14,7 @@ struct MainWindowData {
 	TesterWindowData* dleicar_data;
 	TesterWindowData* disksfull_data;
 	std::vector<TesterWindowData*> local_datas, network_datas, performance_datas;
+	int y;
 public:
 	~MainWindowData();
 };
