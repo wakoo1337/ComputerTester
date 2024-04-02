@@ -151,7 +151,7 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		data_struct = (TesterWindowData*)cs->lpCreateParams;
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data_struct);
 		data_struct->static_wnd = CreateWindowEx(0, L"static", data_struct->static_text, WS_CHILD | WS_VISIBLE, 0, 0, STATIC_WIDTH, cs->cy, hWnd, nullptr, hInst, nullptr);
-		data_struct->edit_wnd = CreateWindowEx(0, L"edit", L"", WS_CHILD | WS_VISIBLE | ES_READONLY, STATIC_WIDTH + INTERVAL, 0, cs->cx - 2 * INTERVAL - STATIC_WIDTH - BUTTON_WIDTH, cs->cy, hWnd, nullptr, hInst, nullptr);
+		data_struct->edit_wnd = CreateWindowEx(0, L"edit", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE, STATIC_WIDTH + INTERVAL, 0, cs->cx - 2 * INTERVAL - STATIC_WIDTH - BUTTON_WIDTH, cs->cy, hWnd, nullptr, hInst, nullptr);
 		data_struct->button_wnd = CreateWindowEx(0, L"button", L"Тест", WS_CHILD | WS_VISIBLE, cs->cx - BUTTON_WIDTH, 0, BUTTON_WIDTH, cs->cy, hWnd, data_struct->menu, hInst, nullptr);
 		break;
 	case WM_SETFONT:
@@ -541,7 +541,7 @@ LPCWSTR Tester::GetResult() {
 }
 
 void Tester::SetResult(LPCWSTR result, bool allocated) {
-	if (this->allocated) delete[] result;
+	if (this->allocated) delete[] this->result;
 	this->result = result;
 	this->allocated = allocated;
 };
@@ -652,10 +652,10 @@ void DiskSpaceTester::DoTest() {
 				double freeGB = static_cast<double>(totalNumberOfFreeBytes.QuadPart) / GB_DIVISOR;
 				double totalGB = static_cast<double>(totalNumberOfBytes.QuadPart) / GB_DIVISOR;
 
-				ss << L"Drive " << driveLetter << L": has " << std::setprecision(2) << std::fixed << freeGB << L" GB free out of " << totalGB << L" GB total.\n";
+				ss << L"Drive " << driveLetter << L": has " << std::setprecision(2) << std::fixed << freeGB << L" GB free out of " << totalGB << L" GB total.\r\n";
 			}
 			else {
-				ss << L"Failed to get disk space for drive " << driveLetter << L":\n";
+				ss << L"Failed to get disk space for drive " << driveLetter;
 			}
 		}
 	}
