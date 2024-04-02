@@ -11,6 +11,7 @@
 #define MAX_LOADSTRING 100
 
 // Глобальные переменные:
+
 HINSTANCE hInst;                                // текущий экземпляр
 WCHAR szTitle[MAX_LOADSTRING];                  // Текст строки заголовка
 WCHAR szWindowClass[MAX_LOADSTRING];            // имя класса главного окна
@@ -255,7 +256,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SendMessage(data_struct->network_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->y += EXTERNAL_MARGIN;
 					old_y = data_struct->y;
-					data_struct->disksfull_data = new TesterWindowData(hWnd, (HMENU)IDM_DISKSFULL, L"Проверить заполнение дисков", 3 * TESTER_HEIGHT, new Tester);
+					data_struct->disksfull_data = new TesterWindowData(hWnd, (HMENU)IDM_DISKSFULL, L"Проверить заполнение дисков", 3 * TESTER_HEIGHT, new DiskSpaceTester);
 					SendMessage(data_struct->disksfull_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 					data_struct->performance_datas = { data_struct->disksfull_data };
 					PositionElements(data_struct->performance_datas, cs->cx, data_struct->y);
@@ -625,6 +626,36 @@ void CheckInstallAntivirus::DoTest() {
 		RegCloseKey(hKey);
 	}
 }
+DiskSpaceTester::DiskSpaceTester() :Tester() {};
+void DiskSpaceTester::DoTest() {
+	const double GB_DIVISOR = 1024.0 * 1024.0 * 1024.0;
+	DWORD drives = GetLogicalDrives();
+	std::wstringstream ss;
 
+	for (int i = 0; i < 26; i++) {
+		if (drives & (1 << i)) {
+			char driveLetter = 'A' + i;
+			char drivePath[4] = { driveLetter, ':', '\\', '\0' };
+
+			ULARGE_INTEGER freeBytesAvailableToCaller;
+			ULARGE_INTEGER totalNumberOfBytes;
+			ULARGE_INTEGER totalNumberOfFreeBytes;
+
+			if (GetDiskFreeSpaceExA(drivePath, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes)) {
+				// Преобразование размеров из байтов в гигабайты
+				double freeGB = static_cast<double>(totalNumberOfFreeBytes.QuadPart) / GB_DIVISOR;
+				double totalGB = static_cast<double>(totalNumberOfBytes.QuadPart) / GB_DIVISOR;
+
+				ss << L"Drive " << driveLetter << L": has " << std::setprecision(2) << std::fixed << freeGB << L" GB free out of " << totalGB << L" GB total.\n";
+			}
+			else {
+				ss << L"Failed to get disk space for drive " << driveLetter << L":\n";
+			}
+		}
+	}
+
+	std::wstring resultStr = ss.str();
+	result = resultStr.c_str();
+}
 
 

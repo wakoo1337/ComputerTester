@@ -23,4 +23,8 @@ public:
 	CheckInstallAntivirus();
 };
 
-
+class DiskSpaceTester : public Tester {
+	void DoTest() override;
+public:
+	DiskSpaceTester();
+};
