@@ -351,23 +351,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 								out_stream.imbue(std::locale("en_US.UTF-8"));
 								std::chrono::system_clock::time_point sysclk = std::chrono::system_clock::now();
 								out_stream << L"Отчёт за " << sysclk << std::endl;
-								if (out_stream.good()) {
-									std::vector<LPCWSTR> names = { L"Локальная безопасность", L"Сетевая безопасность", L"Производительность" };
-									std::vector<std::vector<TesterWindowData*>> datas = { data_struct->local_datas, data_struct->network_datas, data_struct->performance_datas };
-									int c = 0;
-									for (int j = 0; j < 3; j++) {
-										out_stream << names.at(j) << std::endl;
-										for (int i = 0; i < datas.at(j).size(); i++) {
-											c++;
-											TesterWindowData* twd = datas.at(j).at(i);
-											out_stream << c << L". " << twd->GetStaticText() << L" : " << twd->GetTesterResult() << std::endl;
-										}
-									};
+								std::vector<LPCWSTR> names = { L"Локальная безопасность", L"Сетевая безопасность", L"Производительность" };
+								std::vector<std::vector<TesterWindowData*>> datas = { data_struct->local_datas, data_struct->network_datas, data_struct->performance_datas };
+								int c = 0;
+								for (int j = 0; j < 3; j++) {
+									out_stream << names.at(j) << std::endl;
+									for (int i = 0; i < datas.at(j).size(); i++) {
+										c++;
+										TesterWindowData* twd = datas.at(j).at(i);
+										out_stream << c << L". " << twd->GetStaticText() << L" : " << twd->GetTesterResult() << std::endl;
+									}
 								};
 								out_stream.close();
 							}
 							catch (std::wofstream::failure fail) {
 								const char* what = fail.what();
+								MessageBoxExA(hWnd, what, "Cannot save file", MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
 							}
 						}
 						CoTaskMemFree(path);
@@ -532,12 +531,12 @@ MainWindowData::~MainWindowData() {
 	DeleteObject(hFont);
 };
 
-Tester::Tester() : result{ L"Неизвестно" }, allocated{false} {};
+Tester::Tester() : result{ L"Неизвестно" }, allocated{ false } {};
 
 void Tester::DoTest() {};
 
 LPCWSTR Tester::GetResult() {
-		return result;
+	return result;
 }
 
 void Tester::SetResult(LPCWSTR result, bool allocated) {
@@ -665,7 +664,7 @@ void DiskSpaceTester::DoTest() {
 	WCHAR* res = new WCHAR[resultStr.size() + 1];
 	res[resultStr.size()] = L'\0';
 	std::copy(resultStr.cbegin(), resultStr.cend(), res);
-	
+
 	SetResult(res, true);
 }
 
