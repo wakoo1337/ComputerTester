@@ -484,14 +484,17 @@ DWORD WINAPI TesterThreadWrapper(LPVOID lpParameter) {
 };
 
 void TesterWindowData::PerformTest() {
-	if (thread == 0) thread = CreateThread(NULL, 0, &TesterThreadWrapper, this, 0, NULL);
-	else MessageBoxExW(GetParent(window), L"Тест уже идёт", L"Невозможно запустить тест", MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
+	if (thread == 0) {
+		thread = CreateThread(NULL, 0, &TesterThreadWrapper, this, 0, NULL);
+		EnableWindow(this->button_wnd, FALSE);
+	} else MessageBoxExW(GetParent(window), L"Тест уже идёт", L"Невозможно запустить тест", MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
 };
 
 void TesterWindowData::FinishTest() {
 	WaitForSingleObject(thread, INFINITE);
 	CloseHandle(thread);
 	thread = 0;
+	EnableWindow(this->button_wnd, TRUE);
 };
 
 int TesterWindowData::GetHeight() {
