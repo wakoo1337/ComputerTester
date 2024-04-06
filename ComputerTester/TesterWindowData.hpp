@@ -23,4 +23,6 @@ public:
 
 	friend LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	friend DWORD WINAPI TesterThreadWrapper(LPVOID lpParameter);
+
+	static const int static_width, button_width, interval;
 };

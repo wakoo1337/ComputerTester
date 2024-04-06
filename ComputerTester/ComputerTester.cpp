@@ -142,18 +142,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	TesterWindowData* data_struct;
 	data_struct = (TesterWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-#define STATIC_WIDTH 120
-#define BUTTON_WIDTH 40
-#define INTERVAL 10
 	switch (message) {
 	case WM_CREATE:
 		CREATESTRUCT* cs;
 		cs = (CREATESTRUCT*)lParam;
 		data_struct = (TesterWindowData*)cs->lpCreateParams;
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data_struct);
-		data_struct->static_wnd = CreateWindowEx(0, L"static", data_struct->static_text, WS_CHILD | WS_VISIBLE, 0, 0, STATIC_WIDTH, cs->cy, hWnd, nullptr, hInst, nullptr);
-		data_struct->edit_wnd = CreateWindowEx(0, L"edit", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE, STATIC_WIDTH + INTERVAL, 0, cs->cx - 2 * INTERVAL - STATIC_WIDTH - BUTTON_WIDTH, cs->cy, hWnd, nullptr, hInst, nullptr);
-		data_struct->button_wnd = CreateWindowEx(0, L"button", L"Тест", WS_CHILD | WS_VISIBLE, cs->cx - BUTTON_WIDTH, 0, BUTTON_WIDTH, cs->cy, hWnd, data_struct->menu, hInst, nullptr);
+		data_struct->static_wnd = CreateWindowEx(0, L"static", data_struct->static_text, WS_CHILD | WS_VISIBLE, 0, 0, TesterWindowData::static_width, cs->cy, hWnd, nullptr, hInst, nullptr);
+		data_struct->edit_wnd = CreateWindowEx(0, L"edit", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE, TesterWindowData::static_width + TesterWindowData::interval, 0, cs->cx - 2 * TesterWindowData::interval - TesterWindowData::static_width - TesterWindowData::button_width, cs->cy, hWnd, nullptr, hInst, nullptr);
+		data_struct->button_wnd = CreateWindowEx(0, L"button", L"Тест", WS_CHILD | WS_VISIBLE, cs->cx - TesterWindowData::button_width, 0, TesterWindowData::button_width, cs->cy, hWnd, data_struct->menu, hInst, nullptr);
 		break;
 	case WM_SETFONT:
 		SendMessage(data_struct->static_wnd, WM_SETFONT, wParam, lParam);
@@ -164,9 +161,9 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	{
 		const int width = LOWORD(lParam);
 		const int height = HIWORD(lParam);
-		SetWindowPos(data_struct->static_wnd, HWND_TOP, 0, 0, STATIC_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		SetWindowPos(data_struct->edit_wnd, HWND_TOP, STATIC_WIDTH + INTERVAL, 0, width - 2 * INTERVAL - STATIC_WIDTH - BUTTON_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		SetWindowPos(data_struct->button_wnd, HWND_TOP, width - BUTTON_WIDTH, 0, BUTTON_WIDTH, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		SetWindowPos(data_struct->static_wnd, HWND_TOP, 0, 0, TesterWindowData::static_width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		SetWindowPos(data_struct->edit_wnd, HWND_TOP, TesterWindowData::static_width + TesterWindowData::interval, 0, width - 2 * TesterWindowData::interval - TesterWindowData::static_width - TesterWindowData::button_width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		SetWindowPos(data_struct->button_wnd, HWND_TOP, width - TesterWindowData::button_width, 0, TesterWindowData::button_width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 	};
 	break;
 	case WM_COMMAND:
@@ -487,6 +484,10 @@ TesterWindowData::~TesterWindowData() {
 	DestroyWindow(window);
 	delete tester;
 };
+
+const int TesterWindowData::static_width = 120;
+const int TesterWindowData::button_width = 40;
+const int TesterWindowData::interval = 10;
 
 MainWindowData::~MainWindowData() {
 	for (HWND box : boxes) DestroyWindow(box);
