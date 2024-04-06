@@ -490,7 +490,10 @@ TesterWindowData::~TesterWindowData() {
 
 MainWindowData::~MainWindowData() {
 	for (HWND box : boxes) DestroyWindow(box);
-	for (std::vector<TesterWindowData*>* vec : datas) vec->clear();
+	for (std::vector<TesterWindowData*>* vec : datas) {
+		vec->clear();
+		delete vec;
+	};
 	DeleteObject(hFont);
 };
 
