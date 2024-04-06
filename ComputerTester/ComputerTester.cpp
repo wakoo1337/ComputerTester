@@ -5,6 +5,7 @@
 #include "ComputerTester.h"
 #include "Tester.hpp"
 #include "testers.hpp"
+#include "TesterInitData.hpp"
 #include "TesterWindowData.hpp"
 #include "MainWindowData.hpp"
 
@@ -208,6 +209,7 @@ void PositionElements(std::vector<TesterWindowData*>& datas, int width, int& y) 
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static const std::vector<LPCWSTR> box_names = { L"Локальная безопасность", L"Сетевая безопасность", L"Производительность" };
 	MainWindowData* data_struct;
 	data_struct = (MainWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	switch (message)
@@ -223,48 +225,48 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (data_struct->hFont) {
 					CREATESTRUCT* cs;
 					cs = (CREATESTRUCT*)lParam;
-					SendMessage(data_struct->local_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->avpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_AVPRESENT, L"Проверить наличие антивируса", TESTER_HEIGHT, new CheckInstallAntivirus);
-					SendMessage(data_struct->avpresent_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->avworking_data = new TesterWindowData(hWnd, (HMENU)IDM_AVWORKS, L"Проверить работоспособность антивируса", TESTER_HEIGHT, new Tester);
-					SendMessage(data_struct->avworking_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->unknownexe_data = new TesterWindowData(hWnd, (HMENU)IDM_UNKNOWNEXE, L"Неизвестный EXE", TESTER_HEIGHT, new Tester);
-					SendMessage(data_struct->unknownexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->swapexe_data = new TesterWindowData(hWnd, (HMENU)IDM_SWAPEXE, L"Подмена EXE", TESTER_HEIGHT, new Tester);
-					SendMessage(data_struct->swapexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->returnexe_data = new TesterWindowData(hWnd, (HMENU)IDM_RETURNEXE, L"Вернуть EXE", TESTER_HEIGHT, new Tester);
-					SendMessage(data_struct->returnexe_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->local_datas = { data_struct->avpresent_data , data_struct->avworking_data, data_struct->unknownexe_data, data_struct->swapexe_data, data_struct->returnexe_data };
+					static const std::vector<std::vector<TesterInitData>*> inits = {
+						new std::vector<TesterInitData> {
+							{L"Проверить наличие антивируса", (HMENU)IDM_AVPRESENT, TESTER_HEIGHT, new CheckInstallAntivirus},
+							{L"Проверить работоспособность антивируса", (HMENU)IDM_AVWORKS, TESTER_HEIGHT, new Tester},
+							{L"Неизвестный EXE", (HMENU)IDM_UNKNOWNEXE, TESTER_HEIGHT, new Tester},
+							{L"Подмена EXE", (HMENU)IDM_SWAPEXE, TESTER_HEIGHT, new Tester},
+							{L"Вернуть EXE", (HMENU)IDM_RETURNEXE, TESTER_HEIGHT, new Tester},
+						},
+						new std::vector<TesterInitData> {
+							{L"Проверить подключение к Интернету", (HMENU)IDM_INETCONNECTED, TESTER_HEIGHT, new InetConnectedTester},
+							{L"Проверить наличие МСЭ", (HMENU)IDM_FWPRESENT, TESTER_HEIGHT, new FireWallTester},
+							{L"Проверить работоспособность МСЭ", (HMENU)IDM_FWWORKS, TESTER_HEIGHT, new FireWallWorkTester},
+							{L"Скачать EICAR", (HMENU)IDM_DLEICAR, TESTER_HEIGHT, new Tester},
+						},
+						new std::vector<TesterInitData> {
+							{L"Проверить заполнение дисков", (HMENU)IDM_DISKSFULL, 3 * TESTER_HEIGHT, new DiskSpaceTester},
+						}
+					};
+					assert(box_names.size() == inits.size());
 					data_struct->y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
 					int old_y = data_struct->y;
-					PositionElements(data_struct->local_datas, cs->cx, data_struct->y);
-					data_struct->local_box = CreateWindowEx(0, L"button", L"Локальная безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
-					SendMessage(data_struct->local_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->y += EXTERNAL_MARGIN;
-					old_y = data_struct->y;
-					data_struct->connection_data = new TesterWindowData(hWnd, (HMENU)IDM_INETCONNECTED, L"Проверить подключение к Интернету", TESTER_HEIGHT, new InetConnectedTester);
-					SendMessage(data_struct->connection_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->fwpresent_data = new TesterWindowData(hWnd, (HMENU)IDM_FWPRESENT, L"Проверить наличие МСЭ", TESTER_HEIGHT, new FireWallTester);
-					SendMessage(data_struct->fwpresent_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->fwworking_data = new TesterWindowData(hWnd, (HMENU)IDM_FWWORKS, L"Проверить работоспособность МСЭ", TESTER_HEIGHT, new FireWallWorkTester);
-					SendMessage(data_struct->fwworking_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->dleicar_data = new TesterWindowData(hWnd, (HMENU)IDM_DLEICAR, L"Скачать EICAR", TESTER_HEIGHT, new Tester);
-					SendMessage(data_struct->dleicar_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->network_datas = { data_struct->connection_data, data_struct->fwpresent_data,data_struct->fwworking_data, data_struct->dleicar_data };
-					PositionElements(data_struct->network_datas, cs->cx, data_struct->y);
-					data_struct->network_box = CreateWindowEx(0, L"button", L"Сетевая безопасность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
-					SendMessage(data_struct->network_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->y += EXTERNAL_MARGIN;
-					old_y = data_struct->y;
-					data_struct->disksfull_data = new TesterWindowData(hWnd, (HMENU)IDM_DISKSFULL, L"Проверить заполнение дисков", 3 * TESTER_HEIGHT, new DiskSpaceTester);
-					SendMessage(data_struct->disksfull_data->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->performance_datas = { data_struct->disksfull_data };
-					PositionElements(data_struct->performance_datas, cs->cx, data_struct->y);
-					data_struct->performance_box = CreateWindowEx(0, L"button", L"Производительность", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
-					SendMessage(data_struct->performance_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
-					data_struct->y += EXTERNAL_MARGIN;
-					old_y = data_struct->y;
-					data_struct->y -= 3 * INTERNAL_MARGIN;
+					for (unsigned int j = 0; j < inits.size(); j++) {
+						std::vector<TesterInitData> inits_part = *inits.at(j);
+						std::vector<TesterWindowData*>* testers = new std::vector<TesterWindowData*>;
+						for (unsigned int i = 0; i < inits_part.size(); i++) {
+							TesterInitData tid;
+							tid = inits_part.at(i);
+							TesterWindowData* twd;
+							twd = new TesterWindowData(hWnd, tid.menu, tid.static_name, tid.height, tid.tester);
+							SendMessage(twd->getWindow(), WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
+							testers->push_back(twd);
+							data_struct->menus[tid.menu] = twd;
+						};
+						data_struct->datas.push_back(testers);
+						PositionElements(*data_struct->datas.at(j), cs->cx, data_struct->y);
+						HWND new_box = CreateWindowEx(0, L"button", box_names.at(j), WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
+						SendMessage(new_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
+						data_struct->boxes.push_back(new_box);
+						data_struct->y += EXTERNAL_MARGIN;
+						old_y = data_struct->y;
+					}
+					data_struct->y -= data_struct->datas.size() * INTERNAL_MARGIN;
 					SCROLLINFO si;
 					si.cbSize = sizeof(SCROLLINFO);
 					si.fMask = SIF_ALL;
@@ -300,36 +302,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
 			break;
-		case IDM_AVPRESENT:
-			data_struct->avpresent_data->PerformTest();
-			break;
-		case IDM_AVWORKS:
-			data_struct->avworking_data->PerformTest();
-			break;
-		case IDM_UNKNOWNEXE:
-			data_struct->unknownexe_data->PerformTest();
-			break;
-		case IDM_SWAPEXE:
-			data_struct->swapexe_data->PerformTest();
-			break;
-		case IDM_RETURNEXE:
-			data_struct->returnexe_data->PerformTest();
-			break;
-		case IDM_INETCONNECTED:
-			data_struct->connection_data->PerformTest();
-			break;
-		case IDM_FWPRESENT:
-			data_struct->fwpresent_data->PerformTest();
-			break;
-		case IDM_FWWORKS:
-			data_struct->fwworking_data->PerformTest();
-			break;
-		case IDM_DLEICAR:
-			data_struct->dleicar_data->PerformTest();
-			break;
-		case IDM_DISKSFULL:
-			data_struct->disksfull_data->PerformTest();
-			break;
 		case IDM_SAVETXT:
 		{
 			static const COMDLG_FILTERSPEC txt_filter{ L"Текстовые файлы (*.txt)", L"*.txt" };
@@ -351,14 +323,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 								out_stream.imbue(std::locale("en_US.UTF-8"));
 								std::chrono::system_clock::time_point sysclk = std::chrono::system_clock::now();
 								out_stream << L"Отчёт за " << sysclk << std::endl;
-								std::vector<LPCWSTR> names = { L"Локальная безопасность", L"Сетевая безопасность", L"Производительность" };
-								std::vector<std::vector<TesterWindowData*>> datas = { data_struct->local_datas, data_struct->network_datas, data_struct->performance_datas };
 								int c = 0;
-								for (int j = 0; j < 3; j++) {
-									out_stream << names.at(j) << std::endl;
-									for (int i = 0; i < datas.at(j).size(); i++) {
+								for (int j = 0; j < data_struct->datas.size(); j++) {
+									out_stream << box_names.at(j) << std::endl;
+									for (int i = 0; i < data_struct->datas.at(i)->size(); i++) {
 										c++;
-										TesterWindowData* twd = datas.at(j).at(i);
+										TesterWindowData* twd = data_struct->datas.at(j)->at(i);
 										out_stream << c << L". " << twd->GetStaticText() << L" : " << twd->GetTesterResult() << std::endl;
 									}
 								};
@@ -378,7 +348,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+		{
+			std::map<HMENU, TesterWindowData*>::iterator found = data_struct->menus.find((HMENU)wmId);
+			if (found != data_struct->menus.end()) found->second->PerformTest();
+			else return DefWindowProc(hWnd, message, wParam, lParam);
+		}
 		}
 	}
 	break;
@@ -388,15 +362,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		const int height = HIWORD(lParam);
 		int y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
 		int old_y = y;
-		PositionElements(data_struct->local_datas, width, y);
-		SetWindowPos(data_struct->local_box, HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		old_y = y;
-		PositionElements(data_struct->network_datas, width, y);
-		SetWindowPos(data_struct->network_box, HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		old_y = y;
-		PositionElements(data_struct->performance_datas, width, y);
-		SetWindowPos(data_struct->performance_box, HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		old_y = y;
+		for (unsigned int j = 0; j < data_struct->datas.size(); j++) {
+			PositionElements(*(data_struct->datas.at(j)), width, y);
+			SetWindowPos(data_struct->boxes.at(j), HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+			old_y = y;
+		};
 		SCROLLINFO si;
 		si.cbSize = sizeof(SCROLLINFO);
 		si.fMask = SIF_PAGE | SIF_POS | SIF_RANGE;
@@ -487,7 +457,8 @@ void TesterWindowData::PerformTest() {
 	if (thread == 0) {
 		thread = CreateThread(NULL, 0, &TesterThreadWrapper, this, 0, NULL);
 		EnableWindow(this->button_wnd, FALSE);
-	} else MessageBoxExW(GetParent(window), L"Тест уже идёт", L"Невозможно запустить тест", MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
+	}
+	else MessageBoxExW(GetParent(window), L"Тест уже идёт", L"Невозможно запустить тест", MB_OK | MB_ICONERROR, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL));
 };
 
 void TesterWindowData::FinishTest() {
@@ -518,19 +489,8 @@ TesterWindowData::~TesterWindowData() {
 };
 
 MainWindowData::~MainWindowData() {
-	DestroyWindow(local_box);
-	DestroyWindow(network_box);
-	DestroyWindow(performance_box);
-	delete avpresent_data;
-	delete avworking_data;
-	delete unknownexe_data;
-	delete swapexe_data;
-	delete returnexe_data;
-	delete connection_data;
-	delete fwpresent_data;
-	delete fwworking_data;
-	delete dleicar_data;
-	delete disksfull_data;
+	for (HWND box : boxes) DestroyWindow(box);
+	for (std::vector<TesterWindowData*>* vec : datas) vec->clear();
 	DeleteObject(hFont);
 };
 
@@ -657,7 +617,7 @@ void DiskSpaceTester::DoTest() {
 				ss << L"Drive " << driveLetter << L": has " << std::setprecision(2) << std::fixed << freeGB << L" GB free out of " << totalGB << L" GB total.\r\n";
 			}
 			else {
-				ss << L"Failed to get disk space for drive " << driveLetter;
+				ss << L"Failed to get disk space for drive " << driveLetter << L"\r\n";
 			}
 		}
 	}

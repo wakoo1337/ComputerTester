@@ -2,18 +2,9 @@
 struct MainWindowData {
 	NONCLIENTMETRICS ncm;
 	HFONT hFont;
-	HWND local_box, network_box, performance_box;
-	TesterWindowData* avpresent_data;
-	TesterWindowData* avworking_data;
-	TesterWindowData* unknownexe_data;
-	TesterWindowData* swapexe_data;
-	TesterWindowData* returnexe_data;
-	TesterWindowData* connection_data;
-	TesterWindowData* fwpresent_data;
-	TesterWindowData* fwworking_data;
-	TesterWindowData* dleicar_data;
-	TesterWindowData* disksfull_data;
-	std::vector<TesterWindowData*> local_datas, network_datas, performance_datas;
+	std::vector<HWND> boxes;
+	std::vector<std::vector<TesterWindowData*>*> datas;
+	std::map<HMENU, TesterWindowData*> menus;
 	int y;
 public:
 	~MainWindowData();

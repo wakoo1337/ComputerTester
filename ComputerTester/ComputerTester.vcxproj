@@ -147,6 +147,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Tester.hpp" />
+    <ClInclude Include="TesterInitData.hpp" />
     <ClInclude Include="testers.hpp" />
     <ClInclude Include="TesterWindowData.hpp" />
   </ItemGroup>
