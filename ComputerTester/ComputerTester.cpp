@@ -319,7 +319,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 								int c = 0;
 								for (int j = 0; j < data_struct->datas.size(); j++) {
 									out_stream << box_names.at(j) << std::endl;
-									for (int i = 0; i < data_struct->datas.at(i)->size(); i++) {
+									for (int i = 0; i < data_struct->datas.at(j)->size(); i++) {
 										c++;
 										TesterWindowData* twd = data_struct->datas.at(j)->at(i);
 										out_stream << c << L". " << twd->GetStaticText() << L" : " << twd->GetTesterResult() << std::endl;
