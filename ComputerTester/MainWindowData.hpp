@@ -8,4 +8,5 @@ struct MainWindowData {
 	int y;
 public:
 	~MainWindowData();
+	static const int external_margin, internal_margin, tester_height;
 };

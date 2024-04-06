@@ -176,21 +176,17 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	return 0;
 }
 
-#define EXTERNAL_MARGIN 20
-#define INTERNAL_MARGIN 20
-#define TESTER_HEIGHT 30
-
 void PositionElements(std::vector<TesterWindowData*>& datas, int width, int& y) {
 	std::for_each(datas.cbegin(), datas.cend(), [&y, width](TesterWindowData* twd) {
 		SetWindowPos(twd->getWindow(), HWND_TOP,
-		EXTERNAL_MARGIN + INTERNAL_MARGIN,
+		MainWindowData::external_margin + MainWindowData::internal_margin,
 		y,
-		width - 2 * (EXTERNAL_MARGIN + INTERNAL_MARGIN),
+		width - 2 * (MainWindowData::external_margin + MainWindowData::internal_margin),
 		twd->GetHeight(),
 		SWP_NOACTIVATE | SWP_SHOWWINDOW);
-	y += INTERNAL_MARGIN + twd->GetHeight();
+	y += MainWindowData::internal_margin + twd->GetHeight();
 		}
-	); y += INTERNAL_MARGIN;
+	); y += MainWindowData::internal_margin;
 };
 
 #define WM_THREADWAIT WM_USER+0 // В lParam - указатель на TesterWindowData
@@ -224,24 +220,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					cs = (CREATESTRUCT*)lParam;
 					static const std::vector<std::vector<TesterInitData>*> inits = {
 						new std::vector<TesterInitData> {
-							{L"Проверить наличие антивируса", (HMENU)IDM_AVPRESENT, TESTER_HEIGHT, new CheckInstallAntivirus},
-							{L"Проверить работоспособность антивируса", (HMENU)IDM_AVWORKS, TESTER_HEIGHT, new Tester},
-							{L"Неизвестный EXE", (HMENU)IDM_UNKNOWNEXE, TESTER_HEIGHT, new Tester},
-							{L"Подмена EXE", (HMENU)IDM_SWAPEXE, TESTER_HEIGHT, new Tester},
-							{L"Вернуть EXE", (HMENU)IDM_RETURNEXE, TESTER_HEIGHT, new Tester},
+							{L"Проверить наличие антивируса", (HMENU)IDM_AVPRESENT, MainWindowData::tester_height, new CheckInstallAntivirus},
+							{L"Проверить работоспособность антивируса", (HMENU)IDM_AVWORKS, MainWindowData::tester_height, new Tester},
+							{L"Неизвестный EXE", (HMENU)IDM_UNKNOWNEXE, MainWindowData::tester_height, new Tester},
+							{L"Подмена EXE", (HMENU)IDM_SWAPEXE, MainWindowData::tester_height, new Tester},
+							{L"Вернуть EXE", (HMENU)IDM_RETURNEXE, MainWindowData::tester_height, new Tester},
 						},
 						new std::vector<TesterInitData> {
-							{L"Проверить подключение к Интернету", (HMENU)IDM_INETCONNECTED, TESTER_HEIGHT, new InetConnectedTester},
-							{L"Проверить наличие МСЭ", (HMENU)IDM_FWPRESENT, TESTER_HEIGHT, new FireWallTester},
-							{L"Проверить работоспособность МСЭ", (HMENU)IDM_FWWORKS, TESTER_HEIGHT, new FireWallWorkTester},
-							{L"Скачать EICAR", (HMENU)IDM_DLEICAR, TESTER_HEIGHT, new Tester},
+							{L"Проверить подключение к Интернету", (HMENU)IDM_INETCONNECTED, MainWindowData::tester_height, new InetConnectedTester},
+							{L"Проверить наличие МСЭ", (HMENU)IDM_FWPRESENT, MainWindowData::tester_height, new FireWallTester},
+							{L"Проверить работоспособность МСЭ", (HMENU)IDM_FWWORKS, MainWindowData::tester_height, new FireWallWorkTester},
+							{L"Скачать EICAR", (HMENU)IDM_DLEICAR, MainWindowData::tester_height, new Tester},
 						},
 						new std::vector<TesterInitData> {
-							{L"Проверить заполнение дисков", (HMENU)IDM_DISKSFULL, 3 * TESTER_HEIGHT, new DiskSpaceTester},
+							{L"Проверить заполнение дисков", (HMENU)IDM_DISKSFULL, 3 * MainWindowData::tester_height, new DiskSpaceTester},
 						}
 					};
 					assert(box_names.size() == inits.size());
-					data_struct->y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
+					data_struct->y = MainWindowData::external_margin + MainWindowData::internal_margin;
 					int old_y = data_struct->y;
 					for (unsigned int j = 0; j < inits.size(); j++) {
 						std::vector<TesterInitData> inits_part = *inits.at(j);
@@ -257,13 +253,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						};
 						data_struct->datas.push_back(testers);
 						PositionElements(*data_struct->datas.at(j), cs->cx, data_struct->y);
-						HWND new_box = CreateWindowEx(0, L"button", box_names.at(j), WS_CHILD | WS_VISIBLE | BS_GROUPBOX, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, cs->cx - 2 * EXTERNAL_MARGIN, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
+						HWND new_box = CreateWindowEx(0, L"button", box_names.at(j), WS_CHILD | WS_VISIBLE | BS_GROUPBOX, MainWindowData::external_margin, old_y - MainWindowData::internal_margin, cs->cx - 2 * MainWindowData::external_margin, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
 						SendMessage(new_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 						data_struct->boxes.push_back(new_box);
-						data_struct->y += EXTERNAL_MARGIN;
+						data_struct->y += MainWindowData::external_margin;
 						old_y = data_struct->y;
 					}
-					data_struct->y -= data_struct->datas.size() * INTERNAL_MARGIN;
+					data_struct->y -= data_struct->datas.size() * MainWindowData::internal_margin;
 					SCROLLINFO si;
 					si.cbSize = sizeof(SCROLLINFO);
 					si.fMask = SIF_ALL;
@@ -357,11 +353,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		const int width = LOWORD(lParam);
 		const int height = HIWORD(lParam);
-		int y = EXTERNAL_MARGIN + INTERNAL_MARGIN;
+		int y = MainWindowData::external_margin + MainWindowData::internal_margin;
 		int old_y = y;
 		for (unsigned int j = 0; j < data_struct->datas.size(); j++) {
 			PositionElements(*(data_struct->datas.at(j)), width, y);
-			SetWindowPos(data_struct->boxes.at(j), HWND_TOP, EXTERNAL_MARGIN, old_y - INTERNAL_MARGIN, width - 2 * EXTERNAL_MARGIN, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+			SetWindowPos(data_struct->boxes.at(j), HWND_TOP, MainWindowData::external_margin, old_y - MainWindowData::internal_margin, width - 2 * MainWindowData::external_margin, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 			old_y = y;
 		};
 		SCROLLINFO si;
@@ -488,6 +484,10 @@ TesterWindowData::~TesterWindowData() {
 const int TesterWindowData::static_width = 120;
 const int TesterWindowData::button_width = 40;
 const int TesterWindowData::interval = 10;
+
+const int MainWindowData::external_margin = 20;
+const int MainWindowData::internal_margin=20;
+const int MainWindowData::tester_height=30;
 
 MainWindowData::~MainWindowData() {
 	for (HWND box : boxes) DestroyWindow(box);
