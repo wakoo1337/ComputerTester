@@ -366,7 +366,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		GetScrollInfo(hWnd, SB_VERT, &si);
 		si.nMax = data_struct->y;
 		si.nPage = height;
-		si.nPos = max(0, min(si.nMax, si.nPos));
+		si.nPos = 0;
 		SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
 	}
 	break;
