@@ -28,3 +28,9 @@ class DiskSpaceTester : public Tester {
 public:
 	DiskSpaceTester();
 };
+
+class EicarDownloadTester : public Tester {
+	void DoTest() override;
+public:
+	EicarDownloadTester();
+};
