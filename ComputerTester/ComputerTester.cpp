@@ -230,7 +230,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							{L"Проверить подключение к Интернету", (HMENU)IDM_INETCONNECTED, MainWindowData::tester_height, new InetConnectedTester},
 							{L"Проверить наличие МСЭ", (HMENU)IDM_FWPRESENT, MainWindowData::tester_height, new FireWallTester},
 							{L"Проверить работоспособность МСЭ", (HMENU)IDM_FWWORKS, MainWindowData::tester_height, new FireWallWorkTester},
-							{L"Скачать EICAR", (HMENU)IDM_DLEICAR, MainWindowData::tester_height, new Tester},
+							{L"Скачать EICAR", (HMENU)IDM_DLEICAR, MainWindowData::tester_height, new EicarDownloadTester},
 						},
 						new std::vector<TesterInitData> {
 							{L"Проверить заполнение дисков", (HMENU)IDM_DISKSFULL, 3 * MainWindowData::tester_height, new DiskSpaceTester},
@@ -636,3 +636,40 @@ void DiskSpaceTester::DoTest() {
 }
 
 
+
+EicarDownloadTester::EicarDownloadTester() : Tester() {};
+void EicarDownloadTester::DoTest() {
+	HINTERNET hInternet = InternetOpen(L"EicarDownloadTester", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+	if (!hInternet) {
+		SetResult(L"Ошибка при открытии сессии интернета", false);
+		return;
+	}
+
+
+	HINTERNET hUrl = InternetOpenUrl(hInternet, L"https://secure.eicar.org/eicar.com.txt", NULL, 0, INTERNET_FLAG_RELOAD, 0);
+
+	if (!hUrl) {
+		InternetCloseHandle(hInternet);
+		SetResult(L"Невозможно скачать файл", false);
+		return;
+	}
+	
+	BOOL bResult;
+	DWORD readed;
+	char eicar_array[68];
+	bResult = InternetReadFile(
+		hUrl,              
+		(LPSTR)eicar_array,    
+		(DWORD)68,       
+		&readed);
+
+	if (bResult == false || readed < 68) {
+		SetResult(L"эйкар не скачан", false);
+	}
+	else {
+		SetResult(L"эйкар скачан", false);
+	}
+
+	InternetCloseHandle(hUrl);
+	InternetCloseHandle(hInternet);
+}
