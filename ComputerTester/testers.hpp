@@ -5,6 +5,12 @@ public:
 	InetConnectedTester();
 };
 
+class AntivirusWorkTester : public Tester {
+	void DoTest() override;
+public:
+	AntivirusWorkTester();
+};
+
 class FireWallTester : public Tester {
 	void DoTest() override;
 public:
@@ -33,4 +39,10 @@ class EicarDownloadTester : public Tester {
 	void DoTest() override;
 public:
 	EicarDownloadTester();
+};
+
+class InetSpeedTester : public Tester {
+	void DoTest() override;
+public:
+	InetSpeedTester();
 };

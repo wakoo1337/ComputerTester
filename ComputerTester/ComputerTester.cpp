@@ -221,10 +221,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					static const std::vector<std::vector<TesterInitData>*> inits = {
 						new std::vector<TesterInitData> {
 							{L"Проверить наличие антивируса", (HMENU)IDM_AVPRESENT, MainWindowData::tester_height, new CheckInstallAntivirus},
-							{L"Проверить работоспособность антивируса", (HMENU)IDM_AVWORKS, MainWindowData::tester_height, new Tester},
-							{L"Неизвестный EXE", (HMENU)IDM_UNKNOWNEXE, MainWindowData::tester_height, new Tester},
-							{L"Подмена EXE", (HMENU)IDM_SWAPEXE, MainWindowData::tester_height, new Tester},
-							{L"Вернуть EXE", (HMENU)IDM_RETURNEXE, MainWindowData::tester_height, new Tester},
+							{L"Проверить работоспособность антивируса", (HMENU)IDM_AVWORKS, MainWindowData::tester_height, new AntivirusWorkTester}
 						},
 						new std::vector<TesterInitData> {
 							{L"Проверить подключение к Интернету", (HMENU)IDM_INETCONNECTED, MainWindowData::tester_height, new InetConnectedTester},
@@ -234,6 +231,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						},
 						new std::vector<TesterInitData> {
 							{L"Проверить заполнение дисков", (HMENU)IDM_DISKSFULL, 3 * MainWindowData::tester_height, new DiskSpaceTester},
+							{L"Проверить скорость Интернета", (HMENU)IDM_INETSPEED, MainWindowData::tester_height, new InetSpeedTester},
 						}
 					};
 					assert(box_names.size() == inits.size());
@@ -669,11 +667,106 @@ void EicarDownloadTester::DoTest() {
 		&readed);
 
 	if (bResult == false || readed < 68) {
+
 		SetResult(L"эйкар не скачан");
 	}
 	else {
 		SetResult(L"эйкар скачан");
 	}
+
+	InternetCloseHandle(hUrl);
+	InternetCloseHandle(hInternet);
+}
+
+AntivirusWorkTester::AntivirusWorkTester() : Tester() {};
+void AntivirusWorkTester::DoTest() {
+
+	
+	std::set<std::wstring> antiviruses = {
+		L"avpui.exe",
+		L"aswidsagent.exe"
+	};
+
+		PROCESSENTRY32 peProcessEntry;
+		HANDLE CONST hSnapshot = CreateToolhelp32Snapshot(
+			TH32CS_SNAPPROCESS, 0);
+		if (INVALID_HANDLE_VALUE == hSnapshot) {
+			return;
+		}
+
+		peProcessEntry.dwSize = sizeof(PROCESSENTRY32);
+		Process32First(hSnapshot, &peProcessEntry);
+		do {
+			std::wstring str(peProcessEntry.szExeFile);
+			if (antiviruses.contains(str)) {
+				std::wstring concat = L"Антивирус есть: " + str;
+
+				WCHAR* res = new WCHAR[concat.size() + 1];
+				res[concat.size()] = L'\0';
+				std::copy(concat.cbegin(), concat.cend(), res);
+
+				SetResult(res, true);
+				CloseHandle(hSnapshot);
+				return;
+			};
+		} while (Process32Next(hSnapshot, &peProcessEntry));
+
+		CloseHandle(hSnapshot);
+	
+		SetResult(L"Антивирус не запущен", false);
+}
+
+InetSpeedTester::InetSpeedTester() : Tester() {};
+void InetSpeedTester::DoTest() {
+	HINTERNET hInternet = InternetOpen(L"EicarDownloadTester", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+	if (!hInternet) {
+		SetResult(L"Ошибка при открытии сессии интернета", false);
+		return;
+	}
+
+
+	HINTERNET hUrl = InternetOpenUrl(hInternet, L"https://mirror.yandex.ru/ubuntu-cdimage/ubuntu/releases/23.10.1/release/ubuntu-23.10-netboot-riscv64.tar.gz", NULL, 0, INTERNET_FLAG_RELOAD, 0);
+
+	if (!hUrl) {
+		InternetCloseHandle(hInternet);
+		SetResult(L"Невозможно скачать файл", false);
+		return;
+	}
+
+	BOOL bResult;
+	DWORD readed, total_readed = 0;
+	char* data = new char[1024*1024];
+	LARGE_INTEGER before, after, freq;
+	QueryPerformanceFrequency(&freq);
+
+	QueryPerformanceCounter(&before);
+	while (total_readed < 109691021) {
+		bResult = InternetReadFile(
+			hUrl,
+			(LPSTR)data,
+			(DWORD)1024 * 1024,
+			&readed);
+		if (bResult) {
+			total_readed += readed;
+
+		}
+		else {
+			delete[] data;
+			SetResult(L"Не получается скачать файл для оценки скорости интернета", false);
+			InternetCloseHandle(hUrl);
+			InternetCloseHandle(hInternet);
+			return;
+		}
+	};
+	QueryPerformanceCounter(&after);
+
+	delete[] data;
+	std::wstring result = L"Скорость: " + std::to_wstring((109691021.0 / (1024 * 1024)) / (((double)(after.QuadPart - before.QuadPart)) / freq.QuadPart)) + L" МБ/с";
+
+	WCHAR* res = new WCHAR[result.size() + 1];
+	res[result.size()] = L'\0';
+	std::copy(result.cbegin(), result.cend(), res);
+	SetResult(res, true);
 
 	InternetCloseHandle(hUrl);
 	InternetCloseHandle(hInternet);
