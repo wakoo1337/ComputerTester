@@ -126,7 +126,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) return FALSE;
 
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW | WS_VSCROLL,
-		CW_USEDEFAULT, CW_USEDEFAULT, 600, 720, nullptr, nullptr, hInstance, nullptr);
+		CW_USEDEFAULT, CW_USEDEFAULT, 600, 620, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
 	{
@@ -701,11 +701,7 @@ void AntivirusWorkTester::DoTest() {
 			if (antiviruses.contains(str)) {
 				std::wstring concat = L"Антивирус есть: " + str;
 
-				WCHAR* res = new WCHAR[concat.size() + 1];
-				res[concat.size()] = L'\0';
-				std::copy(concat.cbegin(), concat.cend(), res);
-
-				SetResult(res, true);
+				SetResult(concat);
 				CloseHandle(hSnapshot);
 				return;
 			};
@@ -713,14 +709,14 @@ void AntivirusWorkTester::DoTest() {
 
 		CloseHandle(hSnapshot);
 	
-		SetResult(L"Антивирус не запущен", false);
+		SetResult(L"Антивирус не запущен");
 }
 
 InetSpeedTester::InetSpeedTester() : Tester() {};
 void InetSpeedTester::DoTest() {
 	HINTERNET hInternet = InternetOpen(L"EicarDownloadTester", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (!hInternet) {
-		SetResult(L"Ошибка при открытии сессии интернета", false);
+		SetResult(L"Ошибка при открытии сессии интернета");
 		return;
 	}
 
@@ -729,7 +725,7 @@ void InetSpeedTester::DoTest() {
 
 	if (!hUrl) {
 		InternetCloseHandle(hInternet);
-		SetResult(L"Невозможно скачать файл", false);
+		SetResult(L"Невозможно скачать файл");
 		return;
 	}
 
@@ -752,7 +748,7 @@ void InetSpeedTester::DoTest() {
 		}
 		else {
 			delete[] data;
-			SetResult(L"Не получается скачать файл для оценки скорости интернета", false);
+			SetResult(L"Не получается скачать файл для оценки скорости интернета");
 			InternetCloseHandle(hUrl);
 			InternetCloseHandle(hInternet);
 			return;
@@ -762,11 +758,7 @@ void InetSpeedTester::DoTest() {
 
 	delete[] data;
 	std::wstring result = L"Скорость: " + std::to_wstring((109691021.0 / (1024 * 1024)) / (((double)(after.QuadPart - before.QuadPart)) / freq.QuadPart)) + L" МБ/с";
-
-	WCHAR* res = new WCHAR[result.size() + 1];
-	res[result.size()] = L'\0';
-	std::copy(result.cbegin(), result.cend(), res);
-	SetResult(res, true);
+	SetResult(result);
 
 	InternetCloseHandle(hUrl);
 	InternetCloseHandle(hInternet);
