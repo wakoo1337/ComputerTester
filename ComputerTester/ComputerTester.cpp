@@ -729,14 +729,22 @@ void InetSpeedTester::DoTest() {
 		return;
 	}
 
+	DWORD buffer_size = sizeof(DWORD), param_index = 0;
+	DWORD size = 0;
 	BOOL bResult;
+	bResult = HttpQueryInfo(hUrl, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, &size, &buffer_size, &param_index);
+	if (!bResult) {
+		InternetCloseHandle(hUrl);
+		InternetCloseHandle(hInternet);
+		SetResult(L"Размер удалённого файла неизвестен");
+	};
 	DWORD readed, total_readed = 0;
 	char* data = new char[1024*1024];
 	LARGE_INTEGER before, after, freq;
 	QueryPerformanceFrequency(&freq);
 
 	QueryPerformanceCounter(&before);
-	while (total_readed < 109691021) {
+	while (total_readed < size) {
 		bResult = InternetReadFile(
 			hUrl,
 			(LPSTR)data,
@@ -757,7 +765,7 @@ void InetSpeedTester::DoTest() {
 	QueryPerformanceCounter(&after);
 
 	delete[] data;
-	std::wstring result = L"Скорость: " + std::to_wstring((109691021.0 / (1024 * 1024)) / (((double)(after.QuadPart - before.QuadPart)) / freq.QuadPart)) + L" МБ/с";
+	std::wstring result = L"Скорость: " + std::to_wstring((((double) size) / (1024 * 1024)) / (((double)(after.QuadPart - before.QuadPart)) / freq.QuadPart)) + L" МБ/с";
 	SetResult(result);
 
 	InternetCloseHandle(hUrl);
