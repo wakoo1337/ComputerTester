@@ -506,17 +506,26 @@ LPCWSTR Tester::GetResult() {
 	return result;
 }
 
-void Tester::SetResult(LPCWSTR result, bool allocated) {
+void Tester::SetResult(LPCWSTR result) {
 	if (this->allocated) delete[] this->result;
 	this->result = result;
-	this->allocated = allocated;
+	this->allocated = false;
+};
+
+void Tester::SetResult(std::wstring &result) {
+	if (this->allocated) delete[] this->result;
+	WCHAR* res = new WCHAR[result.size() + 1];
+	res[result.size()] = L'\0';
+	std::copy(result.cbegin(), result.cend(), res);
+	this->result = res;
+	this->allocated = true;
 };
 
 InetConnectedTester::InetConnectedTester() : Tester() {};
 
 void InetConnectedTester::DoTest() {
 	DWORD flags;
-	SetResult(InternetGetConnectedState(&flags, 0) ? L"Интернет доступен" : L"Интернет недоступен", false);
+	SetResult(InternetGetConnectedState(&flags, 0) ? L"Интернет доступен" : L"Интернет недоступен");
 }
 
 FireWallTester::FireWallTester() : Tester() {};
@@ -524,10 +533,10 @@ FireWallTester::FireWallTester() : Tester() {};
 void FireWallTester::DoTest() {
 	std::filesystem::path filePath("C:\\Program Files\\COMODO\\COMODO Internet Security\\cis.exe");
 	if (std::filesystem::exists(filePath)) {
-		SetResult(L"МЭ установлен", false);
+		SetResult(L"МЭ установлен");
 	}
 	else {
-		SetResult(L"МЭ не установлен", false);
+		SetResult(L"МЭ не установлен");
 	}
 }
 
@@ -535,25 +544,25 @@ FireWallWorkTester::FireWallWorkTester() : Tester() {};
 void FireWallWorkTester::DoTest() {
 	HINTERNET hInternet = InternetOpen(L"FireWallWorkTester", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (!hInternet) {
-		SetResult(L"Ошибка при открытии сессии интернета", false);
+		SetResult(L"Ошибка при открытии сессии интернета");
 		return;
 	}
 
 	HINTERNET hUrl = InternetOpenUrl(hInternet, L"https://ya.ru", NULL, 0, INTERNET_FLAG_RELOAD, 0);
 	if (!hUrl) {
 		InternetCloseHandle(hInternet);
-		SetResult(L"МЭ функционирует правильно", false);
+		SetResult(L"МЭ функционирует правильно");
 		return;
 	}
 
 	InternetCloseHandle(hUrl);
 	InternetCloseHandle(hInternet);
 
-	SetResult(L"МЭ функционирует не правильно", false);
+	SetResult(L"МЭ функционирует не правильно");
 }
 CheckInstallAntivirus::CheckInstallAntivirus() :Tester() {};
 void CheckInstallAntivirus::DoTest() {
-	SetResult(L"Антивирус не установлен!", false);
+	SetResult(L"Антивирус не установлен!");
 
 	std::vector<std::wstring> antiv = {
 		L"Dr.Web Security Space",
@@ -582,7 +591,7 @@ void CheckInstallAntivirus::DoTest() {
 								softwareName = displayName;
 								software_list.push_back(softwareName);
 								if (std::find(antiv.begin(), antiv.end(), softwareName) != antiv.end()) {
-									SetResult(L"Антивирус установлен!", false);
+									SetResult(L"Антивирус установлен!");
 									break;
 								}
 							}
@@ -626,13 +635,9 @@ void DiskSpaceTester::DoTest() {
 		}
 	}
 
-	std::wstring resultStr = ss.str();
+	std::wstring res = ss.str();
 
-	WCHAR* res = new WCHAR[resultStr.size() + 1];
-	res[resultStr.size()] = L'\0';
-	std::copy(resultStr.cbegin(), resultStr.cend(), res);
-
-	SetResult(res, true);
+	SetResult(res);
 }
 
 
