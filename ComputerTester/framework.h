@@ -9,6 +9,8 @@
 #include <windows.h>
 #include <wininet.h>
 #include <Shobjidl.h>
+#include <tlhelp32.h>
+
 // Файлы заголовков среды выполнения C
 #include <stdlib.h>
 #include <malloc.h>
@@ -25,3 +27,4 @@
 #include <array>
 #include <cassert>
 #include <map>
+#include <set>
