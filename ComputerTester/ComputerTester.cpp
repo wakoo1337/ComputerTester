@@ -646,7 +646,7 @@ EicarDownloadTester::EicarDownloadTester() : Tester() {};
 void EicarDownloadTester::DoTest() {
 	HINTERNET hInternet = InternetOpen(L"EicarDownloadTester", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (!hInternet) {
-		SetResult(L"Ошибка при открытии сессии интернета", false);
+		SetResult(L"Ошибка при открытии сессии интернета");
 		return;
 	}
 
@@ -655,7 +655,7 @@ void EicarDownloadTester::DoTest() {
 
 	if (!hUrl) {
 		InternetCloseHandle(hInternet);
-		SetResult(L"Невозможно скачать файл", false);
+		SetResult(L"Невозможно скачать файл");
 		return;
 	}
 	
@@ -669,10 +669,10 @@ void EicarDownloadTester::DoTest() {
 		&readed);
 
 	if (bResult == false || readed < 68) {
-		SetResult(L"эйкар не скачан", false);
+		SetResult(L"эйкар не скачан");
 	}
 	else {
-		SetResult(L"эйкар скачан", false);
+		SetResult(L"эйкар скачан");
 	}
 
 	InternetCloseHandle(hUrl);
