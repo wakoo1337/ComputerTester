@@ -125,8 +125,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	if (FAILED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) return FALSE;
 
+	const unsigned int dpi = GetDpiForSystem();
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW | WS_VSCROLL,
-		CW_USEDEFAULT, CW_USEDEFAULT, 600, 620, nullptr, nullptr, hInstance, nullptr);
+		CW_USEDEFAULT, CW_USEDEFAULT, MulDiv(600, dpi, USER_DEFAULT_SCREEN_DPI), MulDiv(620, dpi, USER_DEFAULT_SCREEN_DPI), nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
 	{
@@ -144,14 +145,17 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	data_struct = (TesterWindowData*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 	switch (message) {
 	case WM_CREATE:
+	{
+		const unsigned int dpi = GetDpiForWindow(hWnd);
 		CREATESTRUCT* cs;
 		cs = (CREATESTRUCT*)lParam;
 		data_struct = (TesterWindowData*)cs->lpCreateParams;
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)data_struct);
-		data_struct->static_wnd = CreateWindowEx(0, L"static", data_struct->static_text, WS_CHILD | WS_VISIBLE, 0, 0, TesterWindowData::static_width, cs->cy, hWnd, nullptr, hInst, nullptr);
-		data_struct->edit_wnd = CreateWindowEx(0, L"edit", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE, TesterWindowData::static_width + TesterWindowData::interval, 0, cs->cx - 2 * TesterWindowData::interval - TesterWindowData::static_width - TesterWindowData::button_width, cs->cy, hWnd, nullptr, hInst, nullptr);
-		data_struct->button_wnd = CreateWindowEx(0, L"button", L"Тест", WS_CHILD | WS_VISIBLE, cs->cx - TesterWindowData::button_width, 0, TesterWindowData::button_width, cs->cy, hWnd, data_struct->menu, hInst, nullptr);
-		break;
+		data_struct->static_wnd = CreateWindowEx(0, L"static", data_struct->static_text, WS_CHILD | WS_VISIBLE, 0, 0, MulDiv(TesterWindowData::static_width, dpi, USER_DEFAULT_SCREEN_DPI), cs->cy, hWnd, nullptr, hInst, nullptr);
+		data_struct->edit_wnd = CreateWindowEx(0, L"edit", L"", WS_CHILD | WS_VISIBLE | ES_READONLY | ES_MULTILINE, MulDiv(TesterWindowData::static_width + TesterWindowData::interval, dpi, USER_DEFAULT_SCREEN_DPI), 0, cs->cx - MulDiv(2 * TesterWindowData::interval - TesterWindowData::static_width - TesterWindowData::button_width, dpi, USER_DEFAULT_SCREEN_DPI), cs->cy, hWnd, nullptr, hInst, nullptr);
+		data_struct->button_wnd = CreateWindowEx(0, L"button", L"Тест", WS_CHILD | WS_VISIBLE, cs->cx - MulDiv(TesterWindowData::button_width, dpi, USER_DEFAULT_SCREEN_DPI), 0, MulDiv(TesterWindowData::button_width, dpi, USER_DEFAULT_SCREEN_DPI), cs->cy, hWnd, data_struct->menu, hInst, nullptr);
+	}
+	break;
 	case WM_SETFONT:
 		SendMessage(data_struct->static_wnd, WM_SETFONT, wParam, lParam);
 		SendMessage(data_struct->edit_wnd, WM_SETFONT, wParam, lParam);
@@ -161,9 +165,10 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	{
 		const int width = LOWORD(lParam);
 		const int height = HIWORD(lParam);
-		SetWindowPos(data_struct->static_wnd, HWND_TOP, 0, 0, TesterWindowData::static_width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		SetWindowPos(data_struct->edit_wnd, HWND_TOP, TesterWindowData::static_width + TesterWindowData::interval, 0, width - 2 * TesterWindowData::interval - TesterWindowData::static_width - TesterWindowData::button_width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
-		SetWindowPos(data_struct->button_wnd, HWND_TOP, width - TesterWindowData::button_width, 0, TesterWindowData::button_width, height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		const unsigned int dpi = GetDpiForWindow(hWnd);
+		SetWindowPos(data_struct->static_wnd, HWND_TOP, 0, 0, MulDiv(TesterWindowData::static_width, dpi, USER_DEFAULT_SCREEN_DPI), height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		SetWindowPos(data_struct->edit_wnd, HWND_TOP, MulDiv(TesterWindowData::static_width + TesterWindowData::interval, dpi, USER_DEFAULT_SCREEN_DPI), 0, width - MulDiv(2 * TesterWindowData::interval - TesterWindowData::static_width - TesterWindowData::button_width, dpi, USER_DEFAULT_SCREEN_DPI), height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		SetWindowPos(data_struct->button_wnd, HWND_TOP, width - MulDiv(TesterWindowData::button_width, dpi, USER_DEFAULT_SCREEN_DPI), 0, MulDiv(TesterWindowData::button_width, dpi, USER_DEFAULT_SCREEN_DPI), height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 	};
 	break;
 	case WM_COMMAND:
@@ -176,17 +181,17 @@ LRESULT CALLBACK TesterWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	return 0;
 }
 
-void PositionElements(std::vector<TesterWindowData*>& datas, int width, int& y) {
-	std::for_each(datas.cbegin(), datas.cend(), [&y, width](TesterWindowData* twd) {
+void PositionElements(std::vector<TesterWindowData*>& datas, int width, unsigned int dpi, int& y) {
+	std::for_each(datas.cbegin(), datas.cend(), [&y, dpi, width](TesterWindowData* twd) {
 		SetWindowPos(twd->getWindow(), HWND_TOP,
-		MainWindowData::external_margin + MainWindowData::internal_margin,
-		y,
-		width - 2 * (MainWindowData::external_margin + MainWindowData::internal_margin),
-		twd->GetHeight(),
-		SWP_NOACTIVATE | SWP_SHOWWINDOW);
-	y += MainWindowData::internal_margin + twd->GetHeight();
+			MulDiv(MainWindowData::external_margin + MainWindowData::internal_margin, dpi, USER_DEFAULT_SCREEN_DPI),
+			y,
+			width - MulDiv(2 * (MainWindowData::external_margin + MainWindowData::internal_margin), dpi, USER_DEFAULT_SCREEN_DPI),
+			MulDiv(twd->GetHeight(), dpi, USER_DEFAULT_SCREEN_DPI),
+			SWP_NOACTIVATE | SWP_SHOWWINDOW);
+		y += MulDiv(MainWindowData::internal_margin + twd->GetHeight(), dpi, USER_DEFAULT_SCREEN_DPI);
 		}
-	); y += MainWindowData::internal_margin;
+	); y += MulDiv(MainWindowData::internal_margin, dpi, USER_DEFAULT_SCREEN_DPI);
 };
 
 #define WM_THREADWAIT WM_USER+0 // В lParam - указатель на TesterWindowData
@@ -237,6 +242,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					assert(box_names.size() == inits.size());
 					data_struct->y = MainWindowData::external_margin + MainWindowData::internal_margin;
 					int old_y = data_struct->y;
+					data_struct->dpi = GetDpiForWindow(hWnd);
 					for (unsigned int j = 0; j < inits.size(); j++) {
 						std::vector<TesterInitData> inits_part = *inits.at(j);
 						std::vector<TesterWindowData*>* testers = new std::vector<TesterWindowData*>;
@@ -250,8 +256,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							data_struct->menus[tid.menu] = twd;
 						};
 						data_struct->datas.push_back(testers);
-						PositionElements(*data_struct->datas.at(j), cs->cx, data_struct->y);
-						HWND new_box = CreateWindowEx(0, L"button", box_names.at(j), WS_CHILD | WS_VISIBLE | BS_GROUPBOX, MainWindowData::external_margin, old_y - MainWindowData::internal_margin, cs->cx - 2 * MainWindowData::external_margin, data_struct->y - old_y, hWnd, NULL, hInst, NULL);
+						PositionElements(*data_struct->datas.at(j), cs->cx, data_struct->dpi, data_struct->y);
+						HWND new_box = CreateWindowEx(0, L"button", box_names.at(j), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+							MulDiv(MainWindowData::external_margin, data_struct->dpi, USER_DEFAULT_SCREEN_DPI),
+							old_y - MulDiv(MainWindowData::internal_margin, data_struct->dpi, USER_DEFAULT_SCREEN_DPI),
+							cs->cx - MulDiv(2 * MainWindowData::external_margin, data_struct->dpi, USER_DEFAULT_SCREEN_DPI), data_struct->y - old_y, hWnd, NULL, hInst, NULL);
 						SendMessage(new_box, WM_SETFONT, (WPARAM)data_struct->hFont, TRUE);
 						data_struct->boxes.push_back(new_box);
 						data_struct->y += MainWindowData::external_margin;
@@ -351,11 +360,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		const int width = LOWORD(lParam);
 		const int height = HIWORD(lParam);
-		int y = MainWindowData::external_margin + MainWindowData::internal_margin;
+		int y = MulDiv(MainWindowData::external_margin + MainWindowData::internal_margin, data_struct->dpi, USER_DEFAULT_SCREEN_DPI);
 		int old_y = y;
 		for (unsigned int j = 0; j < data_struct->datas.size(); j++) {
-			PositionElements(*(data_struct->datas.at(j)), width, y);
-			SetWindowPos(data_struct->boxes.at(j), HWND_TOP, MainWindowData::external_margin, old_y - MainWindowData::internal_margin, width - 2 * MainWindowData::external_margin, y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+			PositionElements(*(data_struct->datas.at(j)), width, data_struct->dpi, y);
+			SetWindowPos(data_struct->boxes.at(j), HWND_TOP,
+				MulDiv(MainWindowData::external_margin, data_struct->dpi, USER_DEFAULT_SCREEN_DPI),
+				old_y - MulDiv(MainWindowData::internal_margin, data_struct->dpi, USER_DEFAULT_SCREEN_DPI),
+				width - MulDiv(2 * MainWindowData::external_margin, data_struct->dpi, USER_DEFAULT_SCREEN_DPI), y - old_y, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 			old_y = y;
 		};
 		SCROLLINFO si;
@@ -399,6 +411,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		TesterWindowData* twd;
 		twd = (TesterWindowData*)lParam;
 		twd->FinishTest();
+	}
+	break;
+	case WM_DPICHANGED:
+	{
+		const unsigned int old_dpi = data_struct->dpi;
+		data_struct->dpi = GetDpiForWindow(hWnd);
+		const RECT* prcNewWindow = (RECT*)lParam;
+		SetWindowPos(hWnd,
+			NULL,
+			prcNewWindow->left,
+			prcNewWindow->top,
+			prcNewWindow->right - prcNewWindow->left,
+			prcNewWindow->bottom - prcNewWindow->top,
+			SWP_NOZORDER | SWP_NOACTIVATE);
 	}
 	break;
 	default:
@@ -484,8 +510,8 @@ const int TesterWindowData::button_width = 40;
 const int TesterWindowData::interval = 10;
 
 const int MainWindowData::external_margin = 20;
-const int MainWindowData::internal_margin=20;
-const int MainWindowData::tester_height=30;
+const int MainWindowData::internal_margin = 20;
+const int MainWindowData::tester_height = 30;
 
 MainWindowData::~MainWindowData() {
 	for (HWND box : boxes) DestroyWindow(box);
@@ -510,7 +536,7 @@ void Tester::SetResult(LPCWSTR result) {
 	this->allocated = false;
 };
 
-void Tester::SetResult(std::wstring &result) {
+void Tester::SetResult(std::wstring& result) {
 	if (this->allocated) delete[] this->result;
 	WCHAR* res = new WCHAR[result.size() + 1];
 	res[result.size()] = L'\0';
@@ -656,14 +682,14 @@ void EicarDownloadTester::DoTest() {
 		SetResult(L"Невозможно скачать файл");
 		return;
 	}
-	
+
 	BOOL bResult;
 	DWORD readed;
 	char eicar_array[68];
 	bResult = InternetReadFile(
-		hUrl,              
-		(LPSTR)eicar_array,    
-		(DWORD)68,       
+		hUrl,
+		(LPSTR)eicar_array,
+		(DWORD)68,
 		&readed);
 
 	if (bResult == false || readed < 68) {
@@ -681,35 +707,35 @@ void EicarDownloadTester::DoTest() {
 AntivirusWorkTester::AntivirusWorkTester() : Tester() {};
 void AntivirusWorkTester::DoTest() {
 
-	
+
 	std::set<std::wstring> antiviruses = {
 		L"avpui.exe",
 		L"aswidsagent.exe"
 	};
 
-		PROCESSENTRY32 peProcessEntry;
-		HANDLE CONST hSnapshot = CreateToolhelp32Snapshot(
-			TH32CS_SNAPPROCESS, 0);
-		if (INVALID_HANDLE_VALUE == hSnapshot) {
+	PROCESSENTRY32 peProcessEntry;
+	HANDLE CONST hSnapshot = CreateToolhelp32Snapshot(
+		TH32CS_SNAPPROCESS, 0);
+	if (INVALID_HANDLE_VALUE == hSnapshot) {
+		return;
+	}
+
+	peProcessEntry.dwSize = sizeof(PROCESSENTRY32);
+	Process32First(hSnapshot, &peProcessEntry);
+	do {
+		std::wstring str(peProcessEntry.szExeFile);
+		if (antiviruses.contains(str)) {
+			std::wstring concat = L"Антивирус есть: " + str;
+
+			SetResult(concat);
+			CloseHandle(hSnapshot);
 			return;
-		}
+		};
+	} while (Process32Next(hSnapshot, &peProcessEntry));
 
-		peProcessEntry.dwSize = sizeof(PROCESSENTRY32);
-		Process32First(hSnapshot, &peProcessEntry);
-		do {
-			std::wstring str(peProcessEntry.szExeFile);
-			if (antiviruses.contains(str)) {
-				std::wstring concat = L"Антивирус есть: " + str;
+	CloseHandle(hSnapshot);
 
-				SetResult(concat);
-				CloseHandle(hSnapshot);
-				return;
-			};
-		} while (Process32Next(hSnapshot, &peProcessEntry));
-
-		CloseHandle(hSnapshot);
-	
-		SetResult(L"Антивирус не запущен");
+	SetResult(L"Антивирус не запущен");
 }
 
 InetSpeedTester::InetSpeedTester() : Tester() {};
@@ -739,7 +765,7 @@ void InetSpeedTester::DoTest() {
 		SetResult(L"Размер удалённого файла неизвестен");
 	};
 	DWORD readed, total_readed = 0;
-	char* data = new char[1024*1024];
+	char* data = new char[1024 * 1024];
 	LARGE_INTEGER before, after, freq;
 	QueryPerformanceFrequency(&freq);
 
@@ -765,7 +791,7 @@ void InetSpeedTester::DoTest() {
 	QueryPerformanceCounter(&after);
 
 	delete[] data;
-	std::wstring result = L"Скорость: " + std::to_wstring((((double) size) / (1024 * 1024)) / (((double)(after.QuadPart - before.QuadPart)) / freq.QuadPart)) + L" МБ/с";
+	std::wstring result = L"Скорость: " + std::to_wstring((((double)size) / (1024 * 1024)) / (((double)(after.QuadPart - before.QuadPart)) / freq.QuadPart)) + L" МБ/с";
 	SetResult(result);
 
 	InternetCloseHandle(hUrl);
